@@ -1,0 +1,64 @@
+local PowerLib = require 'lib.power_lib'
+local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('machines')
+
+local GearBoxComponent = class()
+
+function GearBoxComponent:__init()
+end
+
+function GearBoxComponent:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv.ratio = json.ratio or 1
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._render_info = self._entity:add_component('render_info')
+	
+	self._power_lib = PowerLib()
+	
+	stonehearth.calendar:set_interval(10,
+		function()
+			self:_on_tick()
+		end
+	)
+end
+
+function GearBoxComponent:_restore()
+	if not self._sv.ratio then
+		self._sv.ratio = 1
+		self.__saved_variables:mark_changed()
+	end
+end
+
+function GearBoxComponent:destroy()
+	self._effect = nil
+end
+
+function GearBoxComponent:get_ratio()
+	return self._sv.ratio
+end
+
+function GearBoxComponent:set_ratio(ratio)
+	if self._sv.ratio == ratio then
+		return
+	end
+	
+	self._sv.ratio = ratio
+	self.__saved_variables:mark_changed()
+end
+
+function GearBoxComponent:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	-- TODO - Do gearbox-y things here
+end
+	
+return GearBoxComponent

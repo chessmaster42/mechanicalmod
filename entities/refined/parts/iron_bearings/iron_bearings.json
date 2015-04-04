@@ -1,0 +1,27 @@
+{
+	"mixins": "stonehearth:mixins:item_properties",
+	"type": "entity",
+	"components": {
+		"item": {
+			"category" : "refined"
+		},
+		"model_variants": {
+			"default": {
+				"models": [
+					"file(iron_bearings.qb)"
+				]
+			}
+		},
+		"unit_info": {
+			"name": "Iron Bearings",
+			"description": "Reduces friction on moving parts",
+			"icon" : "file(iron_bearings.png)"
+		},
+		"stonehearth:material" : {
+			"tags" :  "refined iron machine component tool"
+		},
+		"mob" : {
+			"model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+		}
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"mixins" : "file(gear_box_shaft_ghost.json)",
+	"type": "entity",
+	"components": {
+		"render_info" : {
+			"animation_table" : "mechanicalmod:skeletons:gear_box_shaft"
+		},
+		"stonehearth:entity_forms" : {
+			"ghost_form" : "file(gear_box_shaft_ghost.json)",
+			"iconic_form" : "file(gear_box_shaft_iconic.json)",
+			"placeable_on_ground" : true
+		},
+		"region_collision_shape" : {
+			"region": [
+				{
+					"min" : { "x" : -1, "y" : 0, "z" : -1 },
+					"max" : { "x" : 2, "y" : 1, "z" : 2 }
+				}
+			]
+		},
+		"stonehearth:commands" : {
+			"commands" : [
+				"mechanicalmod:commands:show_machine_details"
+			]
+		},
+		"mechanicalmod:drive_shaft" : {
+		},
+		"mechanicalmod:gear_box" : {
+			"ratio" : 2
+		},
+		"mechanicalmod:power_source" : {
+		},
+		"mechanicalmod:power_drain" : {
+		}
+	}
+}

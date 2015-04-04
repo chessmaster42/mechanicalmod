@@ -1,0 +1,29 @@
+{
+	"type": "entity",
+	"components": {
+		"unit_info": {
+			"name": "Spinning Mule",
+			"description": "Spins raw fibers into the finest threads and yarn",
+			"icon" : "file(spinning_mule.png)",
+			"portrait": "file(spinning_mule.png)"
+		},
+		"model_variants": {
+			"default": {
+				"models": [
+					"file(spinning_mule.qb)"
+				]
+			}
+		},
+		"mob" : {
+			"model_origin" : { "x": 0, "y": 0, "z": 0 },
+			"region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+		},
+		"stonehearth:material" : {
+			"tags" : "wood stone iron furniture crafted machine"
+		}
+	},
+	"entity_data" : {
+		"stonehearth:hide_child_entities_from_pathfinder" : true
+	}
+}
+ 

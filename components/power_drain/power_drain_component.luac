@@ -1,0 +1,208 @@
+local PowerLib = require 'lib.power_lib'
+
+local PowerDrain = class()
+
+function PowerDrain:__init()
+end
+
+function PowerDrain:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv.is_enabled = false
+		self._sv.stored_power = 0
+		if json.power then
+			self._sv.rate = math.max(1, json.power.rate or 1)
+			self._sv.max_stored_power = math.max(1, json.power.max_stored or 1)
+		else
+			self._sv.rate = 1
+			self._sv.max_stored_power = 100
+		end
+		self._sv.view_mode = 0
+		self._sv.speed = 0
+		self._sv.torque = 0
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._power_lib = PowerLib()
+	self._power_lib:load_power_api()
+	
+	stonehearth.power_api:register_power_drain(self._entity)
+	
+	self._on_tick_interval = stonehearth.calendar:set_interval(100,
+		function()
+			self:_on_tick()
+		end
+	)
+end
+
+function PowerDrain:_restore()
+	if not self._sv.view_mode then
+		self._sv.view_mode = 0
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.speed then
+		self._sv.speed = 0
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.torque then
+		self._sv.torque = 0
+		self.__saved_variables:mark_changed()
+	end
+end
+
+function PowerDrain:destroy()
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	
+	stonehearth.power_api:unregister_power_drain(self._entity)
+end
+
+function PowerDrain:toggle_view_mode()
+	if self._sv.view_mode == 0 then
+		self._sv.view_mode = 1
+		self.__saved_variables:mark_changed()
+	else
+		self._sv.view_mode = 0
+		self.__saved_variables:mark_changed()
+	end
+end
+
+function PowerDrain:set_speed(speed)
+	if self._sv.speed == speed then
+		return
+	end
+	
+	self._sv.speed = speed
+	self.__saved_variables:mark_changed()
+end
+
+function PowerDrain:get_speed()
+	return self._sv.speed
+end
+
+function PowerDrain:set_torque(torque)
+	if self._sv.torque == torque then
+		return
+	end
+	
+	self._sv.torque = torque
+	self.__saved_variables:mark_changed()
+end
+
+function PowerDrain:get_torque()
+	return self._sv.torque
+end
+
+function PowerDrain:set_rate(rate)
+	if self._sv.rate == rate then
+		return
+	end
+	
+	self._sv.rate = rate
+	self.__saved_variables:mark_changed()
+end
+
+function PowerDrain:get_rate()
+	return self._sv.rate
+end
+
+function PowerDrain:get_max_power()
+	if not self._sv.max_stored_power then
+		self._sv.max_stored_power = 100
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.max_stored_power
+end
+
+function PowerDrain:get_power()
+	if not self._sv.stored_power then
+		self._sv.stored_power = 0
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.stored_power
+end
+
+function PowerDrain:add_power(power_to_add)
+	local new_power = math.min(self._sv.max_stored_power, self._sv.stored_power + power_to_add)
+	if self._sv.stored_power == new_power then
+		return 0
+	end
+	local power_delta = new_power - self._sv.stored_power
+	
+	self._sv.stored_power = new_power
+	self.__saved_variables:mark_changed()
+	
+	return power_delta
+end
+
+function PowerDrain:remove_power(power_to_remove)
+	local new_power = math.max(0, self._sv.stored_power - power_to_remove)
+	if self._sv.stored_power == new_power then
+		return 0
+	end
+	local power_delta = self._sv.stored_power - new_power
+	
+	self._sv.stored_power = new_power
+	self.__saved_variables:mark_changed()
+	
+	return power_delta
+end
+
+function PowerDrain:get_power_level()
+	return (self:get_power() / self:get_max_power())
+end
+
+function PowerDrain:set_power_level(percentage)
+	if not percentage then
+		percentage = 0
+	end
+	
+	-- Clamp the percentage fraction between 0 and 1
+	percentage = math.min(1, math.max(0, percentage))
+	
+	local stored_power = percentage * self._sv.max_stored_power
+	if self._sv.stored_power == stored_power then
+		return
+	end
+	
+	self._sv.stored_power = stored_power
+	self.__saved_variables:mark_changed()
+end
+
+function PowerDrain:get_is_enabled()
+	if not self._sv.is_enabled then
+		self._sv.is_enabled = false
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.is_enabled
+end
+
+function PowerDrain:set_is_enabled(enabled)
+	if self._sv.is_enabled == enabled then
+		return
+	end
+	self._sv.is_enabled = enabled
+	self.__saved_variables:mark_changed()
+end
+
+function PowerDrain:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		stonehearth.power_api:unregister_power_drain(self._entity)
+		self:set_power_level(0)
+		self:set_speed(0)
+		self:set_torque(0)
+		return
+	end
+
+	if not stonehearth.power_api:is_registered_drain(self._entity) then
+		stonehearth.power_api:register_power_drain(self._entity)
+	end
+end
+
+return PowerDrain

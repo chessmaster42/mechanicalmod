@@ -1,0 +1,15 @@
+{
+	"components" : {
+		"stonehearth:equipment_piece" : {
+			"injected_ai" : {
+				"actions" : [
+					"mechanicalmod:actions:deliver_fiber"
+				],
+				"observers" : [
+				]
+			},
+			"injected_commands" : [
+			]
+		}
+	}
+}

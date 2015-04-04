@@ -1,0 +1,26 @@
+local Entity = _radiant.om.Entity
+local log = radiant.log.create_logger('machines')
+
+local DeliverFiberAction = class()
+
+DeliverFiberAction.name = 'deliver fiber'
+DeliverFiberAction.does = 'mechanicalmod:deliver_fiber'
+DeliverFiberAction.args = {}
+DeliverFiberAction.status_text = 'delivering fiber...'
+DeliverFiberAction.version = 2
+DeliverFiberAction.priority = 1
+
+function filter_fiber_processing_machines(entity)
+	if not entity then
+		return false
+	end
+	local machine_cmp = entity:get_component('mechanicalmod:processing_machine')
+	if machine_cmp and machine_cmp:get_material() == 'fiber resource' then
+		return true
+	else
+		return false
+	end
+end
+
+local ai = stonehearth.ai
+return ai:create_compound_action(DeliverFiberAction):execute('stonehearth:pickup_item_made_of',{material='fiber resource'}):execute('stonehearth:goto_entity_type',{filter_fn = filter_fiber_processing_machines, description = ''}):execute('stonehearth:drop_carrying_into_entity_adjacent',{entity = ai.PREV.destination_entity})

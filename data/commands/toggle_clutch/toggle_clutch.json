@@ -1,0 +1,14 @@
+{
+	"type" : "command",
+
+	"name": "toggle_clutch",
+	"tooltip": "Toggle",
+	"description": "Calls a citizen over to shift the clutch state",
+	"icon": "file(toggle_clutch.png)",
+
+	"action": "call",
+	"function": "mechanicalmod:toggle_clutch",
+	"args": [
+		"{{self}}"
+	]
+}

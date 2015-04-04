@@ -1,0 +1,33 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 15,
+	"recipe_name" : "Clutch Drive Shaft",
+	"description" : "Allows toggling of mechanical connections",
+	"portrait"    : "/mechanicalmod/entities/machines/clutch_shaft/clutch_shaft.png",
+	"level_requirement" : 0,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:parts:wood_shaft",
+			"count" : 2
+		},
+		{
+			"uri" : "mechanicalmod:parts:wood_cog",
+			"count" : 2
+		},
+		{
+			"uri" : "mechanicalmod:parts:stone_base",
+			"count" : 2
+		},
+		{
+			"material" : "leather resource",
+			"count" : 2
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:clutch_shaft"
+		}
+	]
+}

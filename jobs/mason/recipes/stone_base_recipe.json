@@ -1,0 +1,21 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 6,
+	"recipe_name" : "Stone Base",
+	"description" : "Used to support various machines and machine parts",
+	"portrait"    : "/mechanicalmod/entities/refined/parts/stone_base/stone_base.png",
+	"level_requirement" : 2,
+
+	"ingredients": [
+		{
+			"material" : "stone resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item":"mechanicalmod:parts:stone_base"
+		}
+	]
+}

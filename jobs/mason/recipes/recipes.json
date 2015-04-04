@@ -1,0 +1,13 @@
+{
+	"craftable_recipes" : {
+		"machine_parts" : {
+			"ordinal" : 10, 
+			"name" : "Machine Parts", 
+			"recipes" : {
+				"stone_base" : {
+					"recipe" : "file(stone_base_recipe.json)"
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,26 @@
+local Entity = _radiant.om.Entity
+local log = radiant.log.create_logger('machines')
+
+local ToggleClutchAction = class()
+
+ToggleClutchAction.name = 'toggle clutch'
+ToggleClutchAction.does = 'mechanicalmod:toggle_clutch'
+ToggleClutchAction.args = {}
+ToggleClutchAction.status_text = 'toggling clutch...'
+ToggleClutchAction.version = 2
+ToggleClutchAction.priority = 1
+
+function filter_clutch_machines(entity)
+	if not entity then
+		return false
+	end
+	local clutch_cmp = entity:get_component('mechanicalmod:clutch')
+	if clutch_cmp then
+		return true
+	else
+		return false
+	end
+end
+
+local ai = stonehearth.ai
+return ai:create_compound_action(ToggleClutchAction):execute('stonehearth:goto_entity_type', {filter_fn = filter_clutch_machines, description = ''}):execute('stonehearth:run_effect', {effect = 'fiddle'})

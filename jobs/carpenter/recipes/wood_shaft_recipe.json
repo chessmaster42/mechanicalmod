@@ -1,0 +1,21 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 6,
+	"recipe_name" : "Wood Shaft",
+	"description" : "Wooden beam that transfers rotational power",
+	"portrait"    : "/mechanicalmod/entities/refined/parts/wood_shaft/wood_shaft.png",
+	"level_requirement" : 2,
+
+	"ingredients": [
+		{
+			"material" : "wood resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:parts:wood_shaft"
+		}
+	]
+}

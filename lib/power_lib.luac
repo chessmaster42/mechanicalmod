@@ -1,0 +1,46 @@
+local PowerAPIService = require 'services.server.power_api.power_api_service'
+local log = radiant.log.create_logger('power')
+
+local PowerLib = class()
+
+function PowerLib:__init()
+end
+
+function PowerLib:initialize()
+end
+
+function PowerLib:destroy()
+end
+
+function PowerLib:load_power_api()
+	if stonehearth.power_api then
+		return
+	end
+	
+	local path = string.format('services.server.%s.%s_service','power_api','power_api')
+	local service = require(path)()
+	local saved_variables = stonehearth._sv['power_api']
+	if not saved_variables then
+		saved_variables = radiant.create_datastore()
+		stonehearth._sv['power_api'] = saved_variables
+	end
+	service.__saved_variables = saved_variables
+	service._sv = saved_variables:get_data()
+	saved_variables:set_controller(service)
+	service:initialize()
+	stonehearth['power_api'] = service
+end
+
+function PowerLib:is_machine_placed(entity)
+	local entity_forms = entity:get_component('stonehearth:entity_forms')
+	if entity_forms then
+		local current_form = entity_forms:_get_form_in_world()
+		if current_form == entity_forms:get_iconic_entity() or current_form == entity_forms:get_ghost_entity() or entity_forms:is_being_placed() then
+			return false
+		end
+	end
+	
+	return true
+end
+
+return PowerLib

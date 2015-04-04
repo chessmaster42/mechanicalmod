@@ -1,0 +1,31 @@
+{
+	"type": "entity",
+	"mixins" : "stonehearth:mixins:item_properties",
+	"components" : {
+		"unit_info" : {
+			"name" :  "Engineer Overalls",
+			"description" : "Uniform for all engineers",
+			"icon" : "file(engineer_outfit.png)"         
+		},
+		"render_info" : {
+		},
+		"model_variants": {
+			"default": {
+				"layer": "clothing",
+				"models": [
+					"file(engineer_outfit.qb)"
+				]
+			},
+			"female" : {
+				"layer": "clothing",
+				"models": [
+					"file(engineer_outfit_female.qb)"
+				]
+			}
+		},
+		"stonehearth:equipment_piece" : {
+			"slot" : "torso",
+			"render_type" : "merge_with_model"
+		}
+	}
+}

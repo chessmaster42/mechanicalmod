@@ -1,0 +1,52 @@
+{
+	"craftable_recipes" : {
+		"machine_parts" : {
+			"ordinal" : 1, 
+			"name" : "Machine Parts", 
+			"recipes" : {
+			}
+		},
+		"power_sources" : {
+			"ordinal" : 2, 
+			"name" : "Power Sources", 
+			"recipes" : {
+				"water_wheel" : {
+					"recipe" : "file(water_wheel_recipe.json)"
+				},
+				"wind_sail" : {
+					"recipe" : "file(wind_sail_recipe.json)"
+				}
+			}
+		},
+		"power_drains" : {
+			"ordinal" : 3, 
+			"name" : "Power Consumers", 
+			"recipes" : {
+				"grinding_mill" : {
+					"recipe" : "file(grinding_mill_recipe.json)"
+				},
+				"spinning_mule" : {
+					"recipe" : "file(spinning_mule_recipe.json)"
+				}
+			}
+		},
+		"power_transmission" : {
+			"ordinal" : 4,
+			"name" : "Power Transmission",
+			"recipes" : {
+				"drive_shaft" : {
+					"recipe" : "file(drive_shaft_recipe.json)"
+				},
+				"long_drive_shaft" : {
+					"recipe" : "file(long_drive_shaft_recipe.json)"
+				},
+				"gear_box_shaft" : {
+					"recipe" : "file(gear_box_shaft_recipe.json)"
+				},
+				"clutch_shaft" : {
+					"recipe" : "file(clutch_shaft_recipe.json)"
+				}
+			}
+		}
+	}
+}

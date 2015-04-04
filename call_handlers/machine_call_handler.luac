@@ -1,0 +1,80 @@
+local log = radiant.log.create_logger('call_handler')
+
+local MachineCallHandler = class()
+
+function MachineCallHandler:toggle_power_level_view(session, response, entity)
+	if not entity or not entity:is_valid() then
+		return false
+	end
+
+	local power_source = entity:get_component('mechanicalmod:power_source')
+	if power_source then
+		power_source:toggle_view_mode()
+	end
+	
+	local power_drain = entity:get_component('mechanicalmod:power_drain')
+	if power_drain then
+		power_drain:toggle_view_mode()
+	end
+	
+	log:error('DEBUG - Toggling power level view on %s', tostring(entity))
+	
+	return true
+end
+
+function MachineCallHandler:set_machine_name(session, response, entity, name)
+	if not entity or not entity:is_valid() then
+		return false
+	end
+
+	radiant.entities.set_display_name(entity, name)
+	
+	return true
+end
+
+function MachineCallHandler:save_machine_config(session, response, entity, config)
+	if not entity or not entity:is_valid() then
+		return false
+	end
+
+	local gear_box_cmp = entity:get_component('mechanicalmod:gear_box')
+	if gear_box_cmp then
+		gear_box_cmp:set_ratio(config.gear_ratio)
+	end
+	
+	return true
+end
+
+function MachineCallHandler:get_machine_config(session, response, entity)
+	if not entity or not entity:is_valid() then
+		return false
+	end
+
+	-- TODO - Finish me!
+	
+	return true
+end
+
+function MachineCallHandler:toggle_clutch(session, response, entity)
+	if not entity or not entity:is_valid() then
+		return false
+	end
+
+	local clutch_cmp = entity:get_component('mechanicalmod:clutch')
+	
+	local town = stonehearth.town:get_town(entity)
+	local toggle_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:toggle_clutch'):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
+	toggle_task:notify_completed(
+		function()
+			if clutch_cmp:get_state() == 0 then
+				clutch_cmp:set_state(1)
+			else
+				clutch_cmp:set_state(0)
+			end
+		end
+	)
+	
+	return true
+end
+
+return MachineCallHandler

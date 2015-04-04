@@ -1,0 +1,65 @@
+local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
+local Color4 = _radiant.csg.Color4
+local log = radiant.log.create_logger('power_drain')
+
+local PowerDrainRenderer = class()
+
+function PowerDrainRenderer:initialize(render_entity, datastore)
+	self._datastore = datastore
+	self._render_entity = render_entity
+	self._entity = self._render_entity:get_entity()
+	self._parent_node = self._render_entity:get_node()
+	
+	self._datastore_trace = self._datastore:trace_data('rendering locking portal'):on_changed(
+		function()
+			self:_update()
+		end
+	):push_object_state()
+end
+
+function PowerDrainRenderer:destroy()
+	if self._datastore_trace then
+		self._datastore_trace:destroy()
+		self._datastore_trace = nil
+	end
+	self:_destroy_outline_node()
+end
+
+function PowerDrainRenderer:_destroy_outline_node()
+	if self._outline_node then
+		self._outline_node:destroy()
+		self._outline_node = nil
+	end
+end
+
+function PowerDrainRenderer:_update()
+	self:_destroy_outline_node()
+	
+	local data = self._datastore:get_data()
+	
+	if not data.view_mode or data.view_mode <= 0 then
+		return
+	end
+	
+	local rcs = self._entity:get_component('region_collision_shape')
+	local offset = 1
+	if rcs then
+		local region = rcs:get_region():get()
+		local bounds = region:get_bounds()
+		offset = offset + bounds.max.y - bounds.min.y
+	end
+	
+	local percentage = data.stored_power / math.max(1, data.max_stored_power)
+	
+	local height = percentage * 3
+	local color = Color4(255 * (1.0 - percentage), 0, 255 * percentage, 64)
+	local render_region = Region3()
+	local new_cube = Cube3(Point3(1.25, offset, 0.25), Point3(1.75, height + offset, 0.75))
+	render_region:add_cube(new_cube)
+	
+	self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, color, color)
+end
+
+return PowerDrainRenderer

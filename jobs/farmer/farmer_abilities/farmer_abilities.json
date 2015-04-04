@@ -1,0 +1,15 @@
+{
+	"components" : {
+		"stonehearth:equipment_piece" : {
+			"injected_ai" : {
+				"actions" : [
+					"mechanicalmod:actions:deliver_grain"
+				],
+				"observers" : [
+				]
+			},
+			"injected_commands" : [
+			]
+		}
+	}
+}

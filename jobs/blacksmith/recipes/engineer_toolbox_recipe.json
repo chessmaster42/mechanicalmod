@@ -1,0 +1,25 @@
+{
+	"type":"recipe",
+
+	"work_units"  : 3,
+	"recipe_name" : "Engineer's Toolbox",
+	"description" : "Promotes a hearthling into an engineer.",
+	"portrait"    : "/mechanicalmod/jobs/engineer/engineer_toolbox/engineer_toolbox.png",
+	"level_requirement" : 1,
+
+	"ingredients": [
+		{
+			"material" : "wood resource",
+			"count" : 1
+		},
+		{
+			"uri" : "stonehearth:refined:iron_ingot",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item":"mechanicalmod:engineer:talisman"
+		}
+	]
+}

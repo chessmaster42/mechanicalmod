@@ -1,0 +1,35 @@
+{
+	"mixins" : "file(wind_sail_ghost.json)",
+	"type": "entity",
+	"components": {
+		"render_info" : {
+			"animation_table" : "mechanicalmod:skeletons:wind_sail"
+		},
+		"stonehearth:entity_forms" : {
+			"ghost_form" : "file(wind_sail_ghost.json)",
+			"iconic_form" : "file(wind_sail_iconic.json)",
+			"placeable_on_ground" : true
+		},
+		"region_collision_shape" : {
+			"region": [
+				{
+					"min" : { "x" : -1, "y" : 0, "z" : 0 },
+					"max" : { "x" : 2, "y" : 4, "z" : 1 }
+				}
+			]
+		},
+		"stonehearth:commands" : {
+			"commands" : [
+				"mechanicalmod:commands:show_machine_details"
+			]
+		},
+		"mechanicalmod:wind_sail" : {
+		},
+		"mechanicalmod:power_source" : {
+			"power" : {
+				"rate" : 1.0,
+				"max_stored" : 100
+			}
+		}
+	}
+}

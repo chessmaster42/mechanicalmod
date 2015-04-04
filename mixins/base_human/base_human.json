@@ -1,0 +1,9 @@
+{
+	"components" : {
+		"stonehearth:ai" : {
+			"actions" : [
+				"mechanicalmod:actions:toggle_clutch"
+			]
+		}
+	}
+}

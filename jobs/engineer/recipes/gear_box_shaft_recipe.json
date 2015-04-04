@@ -1,0 +1,29 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 15,
+	"recipe_name" : "Gear-Box Drive Shaft",
+	"description" : "Changes speed and torque before transmitting power",
+	"portrait"    : "/mechanicalmod/entities/machines/gear_box_shaft/gear_box_shaft.png",
+	"level_requirement" : 0,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:parts:wood_shaft",
+			"count" : 3
+		},
+		{
+			"uri" : "mechanicalmod:parts:wood_cog",
+			"count" : 5
+		},
+		{
+			"uri" : "mechanicalmod:parts:stone_base",
+			"count" : 2
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:gear_box_shaft"
+		}
+	]
+}

@@ -1,0 +1,79 @@
+local PowerLib = require 'lib.power_lib'
+local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('machines')
+
+local WindSailComponent = class()
+
+function WindSailComponent:__init()
+end
+
+function WindSailComponent:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._render_info = self._entity:add_component('render_info')
+	
+	self._power_lib = PowerLib()
+	
+	stonehearth.calendar:set_interval(10,
+		function()
+			self:_on_tick()
+		end
+	)
+end
+
+function WindSailComponent:_restore()
+end
+
+function WindSailComponent:destroy()
+	if self._effect then
+		self._effect:destroy()
+		self._effect = nil
+	end
+end
+
+function WindSailComponent:_get_air_flow_rate()
+	-- TODO - Come up with a way to randomly adjust the wind direction
+	
+	return 1
+end
+
+function WindSailComponent:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_source = self._entity:get_component('mechanicalmod:power_source')
+	if not power_source then
+		return
+	end
+	
+	self._flow_rate = self:_get_air_flow_rate()
+	
+	power_source:set_is_enabled(true)
+	power_source:add_power(self._flow_rate * 5)
+	power_source:set_speed(50 * self._flow_rate)
+	
+	-- Calculate which animation to use
+	local raw_percent = math.max(0, math.min(100, power_source:get_speed()))
+	local percent = raw_percent - (raw_percent % 25)
+	local effect_name = 'work_' .. tostring(percent)
+	
+	if not self._effect then
+		self._effect = radiant.effects.run_effect(self._entity, effect_name):set_cleanup_on_finish(true)
+	end
+	
+	self._effect:set_finished_cb(
+		function()
+			self._effect = nil
+		end
+	)
+end
+
+return WindSailComponent

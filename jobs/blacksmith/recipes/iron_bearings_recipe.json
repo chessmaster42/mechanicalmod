@@ -1,0 +1,21 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 6,
+	"recipe_name" : "Iron Bearings",
+	"description" : "Reduces friction on moving parts",
+	"portrait"    : "/mechanicalmod/entities/refined/parts/iron_bearings/iron_bearings.png",
+	"level_requirement" : 2,
+
+	"ingredients": [
+		{
+			"uri" : "stonehearth:refined:iron_ingot",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:parts:iron_bearings"
+		}
+	]
+}

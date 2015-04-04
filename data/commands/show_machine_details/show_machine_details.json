@@ -1,0 +1,12 @@
+{
+	"type" : "command",
+
+	"name": "show_machine_details",
+	"tooltip": "Machine Details",
+	"description": "Displays details about a machine",
+	"icon": "file(show_machine_details.png)",
+
+	"action": "fire_event",
+	"event_name" : "mechanicalmod_show_machine_details",
+	"event_data" : {}
+}

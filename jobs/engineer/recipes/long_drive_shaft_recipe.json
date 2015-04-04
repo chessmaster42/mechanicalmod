@@ -1,0 +1,29 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 6,
+	"recipe_name" : "Long Drive Shaft",
+	"description" : "Transmits mechanical power from one machine to another",
+	"portrait"    : "/mechanicalmod/entities/machines/long_drive_shaft/long_drive_shaft.png",
+	"level_requirement" : 1,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:parts:wood_shaft",
+			"count" : 2
+		},
+		{
+			"uri" : "mechanicalmod:parts:wood_cog",
+			"count" : 2
+		},
+		{
+			"uri" : "mechanicalmod:parts:stone_base",
+			"count" : 2
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:long_drive_shaft"
+		}
+	]
+}

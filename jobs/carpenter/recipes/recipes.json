@@ -1,0 +1,16 @@
+{
+	"craftable_recipes" : {
+		"machine_parts" : {
+			"ordinal" : 10, 
+			"name" : "Machine Parts", 
+			"recipes" : {
+				"wood_cog" : {
+					"recipe" : "file(wood_cog_recipe.json)"
+				},
+				"wood_shaft" : {
+					"recipe" : "file(wood_shaft_recipe.json)"
+				}
+			}
+		}
+	}
+}

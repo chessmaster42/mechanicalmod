@@ -1,0 +1,119 @@
+local PowerLib = require 'lib.power_lib'
+local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('machines')
+
+local ClutchComponent = class()
+
+function ClutchComponent:__init()
+end
+
+function ClutchComponent:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv.state = 1
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._render_info = self._entity:add_component('render_info')
+	
+	self._power_lib = PowerLib()
+	
+	stonehearth.calendar:set_interval(10,
+		function()
+			self:_on_tick()
+		end
+	)
+end
+
+function ClutchComponent:_restore()
+	if not self._sv.state then
+		self._sv.state = 1
+		self.__saved_variables:mark_changed()
+	end
+end
+
+function ClutchComponent:destroy()
+	self._effect = nil
+end
+
+function ClutchComponent:get_state()
+	return self._sv.state
+end
+
+function ClutchComponent:set_state(state)
+	if self._sv.state == state then
+		return
+	end
+	
+	self._sv.state = state
+	self.__saved_variables:mark_changed()
+end
+
+function ClutchComponent:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_source = self._entity:get_component('mechanicalmod:power_source')
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	
+	if not power_source or not power_drain then
+		return
+	end
+	
+	if self:get_state() == 1 then
+		power_source:set_is_enabled(true)
+		power_drain:set_is_enabled(true)
+	
+		-- Sync the speed between the dummy drain and source
+		power_source:set_speed(power_drain:get_speed())
+		
+		-- Average out the power between the dummy drain and source
+		local average_power_level = (power_source:get_power_level() + power_drain:get_power_level()) / 2
+		power_source:set_power_level(average_power_level)
+		power_drain:set_power_level(average_power_level)
+	else
+		power_source:set_is_enabled(false)
+		power_drain:set_is_enabled(false)
+	
+		power_drain:set_power_level(0)
+		power_drain:set_speed(0)
+		power_drain:set_torque(0)
+		
+		power_source:set_power_level(0)
+		power_source:set_speed(0)
+		power_source:set_torque(0)
+	end
+	
+	local speed_percent = math.max(0, math.min(400, power_source:get_speed()))
+	speed_percent = speed_percent - (speed_percent % 25)
+	if speed_percent >= 100 and speed_percent < 200 then
+		speed_percent = 100
+	end
+	if speed_percent >= 200 and speed_percent < 400 then
+		speed_percent = 200
+	end
+	if speed_percent >= 400 then
+		speed_percent = 400
+	end
+
+	if not self._effect then
+		if speed_percent > 0 then
+			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
+		else
+			self._effect = radiant.effects.run_effect(self._entity, 'idle')
+		end
+	end
+	
+	self._effect:set_finished_cb(
+		function()
+			self._effect = nil
+		end
+	)
+end
+
+return ClutchComponent

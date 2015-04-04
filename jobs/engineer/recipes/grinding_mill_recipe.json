@@ -1,0 +1,33 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 10,
+	"recipe_name" : "Grinding Mill",
+	"description" : "Uses mechanical power to grind things up",
+	"portrait"    : "/mechanicalmod/entities/machines/grinding_mill/grinding_mill.png",
+	"level_requirement" : 0,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:parts:wood_shaft",
+			"count" : 2
+		},
+		{
+			"uri" : "mechanicalmod:parts:wood_cog",
+			"count" : 2
+		},
+		{
+			"uri" : "mechanicalmod:parts:stone_base",
+			"count" : 2
+		},
+		{
+			"material" : "stone resource",
+			"count" : 2
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:grinding_mill"
+		}
+	]
+}

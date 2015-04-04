@@ -1,0 +1,9 @@
+{
+	"skeleton" : {
+		"base": [0,0,0],
+		"wheel": [0,0,10],
+		"gear" : [0,0,10]
+	},
+	"animation_root" : "file(animations)",
+	"effects_root" : "file(effects)"
+}

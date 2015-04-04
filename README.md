@@ -1,2 +1,2 @@
-# mechanicalmod
-Machinery Mod for the game Stonehearth
+# Mechanical Mod
+Machinery mod for the game Stonehearth

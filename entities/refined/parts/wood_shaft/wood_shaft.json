@@ -1,0 +1,27 @@
+{
+	"mixins": "stonehearth:mixins:item_properties",
+	"type": "entity",
+	"components": {
+		"item": {
+			"category" : "refined"
+		},
+		"model_variants": {
+			"default": {
+				"models": [
+					"file(wood_shaft.qb)"
+				]
+			}
+		},
+		"unit_info": {
+			"name": "Wood Shaft",
+			"description": "Wooden beam that transfers rotational power",
+			"icon" : "file(wood_shaft.png)"
+		},
+		"stonehearth:material" : {
+			"tags" :  "refined wood machine component tool"
+		},
+		"mob" : {
+			"model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+		}
+	}
+}

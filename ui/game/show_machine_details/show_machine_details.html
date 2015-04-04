@@ -1,0 +1,36 @@
+<script type="text/x-handlebars" data-template-name="machineDetails">
+	<div id="machineDetailsWindow" class="gui">
+		<div class="window">
+			<div class="title">
+				<input id="opt_machineName" type="text" maxlength=32 {{bind-attr value=machine_name}} />
+				<a id="closeButton" {{action hide target=view}}></a>
+			</div>
+			
+			<div id="generalTab" class="tabPage">
+				<div class="buttons">
+					<button {{action "toggleviewmode" target=view}}>
+						<img id="toggleViewButtonIcon"/>
+						<span class="buttonLabel">View Mode</span>
+					</button>
+				</div>
+			</div>
+			
+			<div id="settingsTab" class="tabPage">
+				<div class="setting">
+					<div id="gearRatioSlider"></div>
+					<div id="gearRatioValue" class="sliderValue"></div>
+					<div class="sliderDescription">Gear Ratio</div>
+				</div>
+				
+				<div class="buttons">
+					<button {{action "save" target=view}}>Save</button>
+				</div>
+			</div>
+			
+			<div id="tabs">
+				<div class="tab active" tabPage="generalTab">General</div>
+				<div class="tab" tabPage="settingsTab">Settings</div>
+			</div>
+		</div>
+	</div>
+</script>

@@ -1,0 +1,21 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 6,
+	"recipe_name" : "Wood Cog",
+	"description" : "Used to connect machine parts together at various angles",
+	"portrait"    : "/mechanicalmod/entities/refined/parts/wood_cog/wood_cog.png",
+	"level_requirement" : 2,
+
+	"ingredients": [
+		{
+			"material" : "wood resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:parts:wood_cog"
+		}
+	]
+}

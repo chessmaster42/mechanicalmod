@@ -1,0 +1,41 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 20,
+	"recipe_name" : "Spinning Mule",
+	"description" : "Spins raw fibers into the finest threads and yarn",
+	"portrait"    : "/mechanicalmod/entities/machines/spinning_mule/spinning_mule.png",
+	"level_requirement" : 0,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:parts:wood_shaft",
+			"count" : 1
+		},
+		{
+			"uri" : "mechanicalmod:parts:wood_cog",
+			"count" : 2
+		},
+		{
+			"uri" : "mechanicalmod:parts:stone_base",
+			"count" : 1
+		},
+		{
+			"uri" : "mechanicalmod:parts:iron_bearings",
+			"count" : 1
+		},
+		{
+			"material" : "fiber resource",
+			"count" : 1
+		},
+		{
+			"material" : "wood resource",
+			"count" : 2
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:spinning_mule"
+		}
+	]
+}

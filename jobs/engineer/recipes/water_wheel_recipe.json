@@ -1,0 +1,37 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 10,
+	"recipe_name" : "Water Wheel",
+	"description" : "Turns the power of moving water into ... power!",
+	"portrait"    : "/mechanicalmod/entities/machines/water_wheel/water_wheel.png",
+	"level_requirement" : 0,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:parts:wood_shaft",
+			"count" : 1
+		},
+		{
+			"uri" : "mechanicalmod:parts:wood_cog",
+			"count" : 1
+		},
+		{
+			"uri" : "mechanicalmod:parts:stone_base",
+			"count" : 1
+		},
+		{
+			"uri" : "mechanicalmod:parts:iron_bearings",
+			"count" : 1
+		},
+		{
+			"material" : "wood resource",
+			"count" : 2
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:water_wheel"
+		}
+	]
+}
