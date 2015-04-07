@@ -32,10 +32,7 @@ function WindSailComponent:_restore()
 end
 
 function WindSailComponent:destroy()
-	if self._effect then
-		self._effect:destroy()
-		self._effect = nil
-	end
+	self._effect = nil
 end
 
 function WindSailComponent:_get_air_flow_rate()
@@ -60,13 +57,15 @@ function WindSailComponent:_on_tick()
 	power_source:add_power(self._flow_rate * 5)
 	power_source:set_speed(50 * self._flow_rate)
 	
-	-- Calculate which animation to use
-	local raw_percent = math.max(0, math.min(100, power_source:get_speed()))
-	local percent = raw_percent - (raw_percent % 25)
-	local effect_name = 'work_' .. tostring(percent)
+	local speed_percent = math.max(0, math.min(100, power_source:get_speed()))
+	speed_percent = speed_percent - (speed_percent % 25)
 	
 	if not self._effect then
-		self._effect = radiant.effects.run_effect(self._entity, effect_name):set_cleanup_on_finish(true)
+		if speed_percent > 0 then
+			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
+		else
+			self._effect = radiant.effects.run_effect(self._entity, 'idle')
+		end
 	end
 	
 	self._effect:set_finished_cb(

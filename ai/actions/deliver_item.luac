@@ -1,0 +1,13 @@
+local Entity = _radiant.om.Entity
+local log = radiant.log.create_logger('machines')
+
+local DeliverItemAction = class()
+
+DeliverItemAction.name = 'deliver item'
+DeliverItemAction.does = 'mechanicalmod:deliver_item'
+DeliverItemAction.args = {uri='string',entity=Entity,}
+DeliverItemAction.version = 2
+DeliverItemAction.priority = 1
+
+local ai = stonehearth.ai
+return ai:create_compound_action(DeliverItemAction):execute('stonehearth:pickup_item_with_uri',{uri = ai.ARGS.uri}):execute('stonehearth:goto_entity',{entity = ai.ARGS.entity}):execute('stonehearth:drop_carrying_into_entity_adjacent',{entity = ai.ARGS.entity})

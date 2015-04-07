@@ -27,6 +27,9 @@
 				},
 				"spinning_mule" : {
 					"recipe" : "file(spinning_mule_recipe.json)"
+				},
+				"smelt_forge" : {
+					"recipe" : "file(smelt_forge_recipe.json)"
 				}
 			}
 		},

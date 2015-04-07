@@ -14,7 +14,7 @@
 		},
 		"unit_info": {
 			"name": "Wood Shaft",
-			"description": "Wooden beam that transfers rotational power",
+			"description": "Beam that transfers rotational power",
 			"icon" : "file(wood_shaft.png)"
 		},
 		"stonehearth:material" : {

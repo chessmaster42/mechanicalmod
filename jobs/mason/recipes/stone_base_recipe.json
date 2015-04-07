@@ -15,7 +15,7 @@
 	],
 	"produces": [
 		{
-			"item":"mechanicalmod:parts:stone_base"
+			"item" : "mechanicalmod:parts:stone_base"
 		}
 	]
 }

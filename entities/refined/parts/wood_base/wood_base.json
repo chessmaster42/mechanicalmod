@@ -1,0 +1,27 @@
+{
+	"mixins": "stonehearth:mixins:item_properties",
+	"type": "entity",
+	"components": {
+		"item": {
+			"category" : "refined"
+		},
+		"model_variants": {
+			"default": {
+				"models": [
+					"file(wood_base.qb)"
+				]
+			}
+		},
+		"unit_info": {
+			"name": "Wood Base",
+			"description": "Used to support various machines and machine parts",
+			"icon" : "file(wood_base.png)"
+		},
+		"stonehearth:material" : {
+			"tags" :  "refined wood machine component tool"
+		},
+		"mob" : {
+			"model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+		}
+	}
+}

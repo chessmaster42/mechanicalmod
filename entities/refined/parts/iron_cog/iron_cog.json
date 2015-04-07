@@ -1,0 +1,27 @@
+{
+	"mixins": "stonehearth:mixins:item_properties",
+	"type": "entity",
+	"components": {
+		"item": {
+			"category" : "refined"
+		},
+		"model_variants": {
+			"default": {
+				"models": [
+					"file(iron_cog.qb)"
+				]
+			}
+		},
+		"unit_info": {
+			"name": "Iron Cog",
+			"description": "Used to connect machine parts together at various angles",
+			"icon" : "file(iron_cog.png)"
+		},
+		"stonehearth:material" : {
+			"tags" :  "refined iron machine component tool"
+		},
+		"mob" : {
+			"model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+		}
+	}
+}

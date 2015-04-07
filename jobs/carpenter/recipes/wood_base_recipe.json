@@ -1,0 +1,21 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 6,
+	"recipe_name" : "Wood Base",
+	"description" : "Used to support various machines and machine parts",
+	"portrait"    : "/mechanicalmod/entities/refined/parts/wood_base/wood_base.png",
+	"level_requirement" : 2,
+
+	"ingredients": [
+		{
+			"material" : "wood resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:parts:wood_base"
+		}
+	]
+}

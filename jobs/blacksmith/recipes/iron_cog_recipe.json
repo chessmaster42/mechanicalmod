@@ -1,0 +1,21 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 10,
+	"recipe_name" : "Iron Cog",
+	"description" : "Used to connect machine parts together at various angles",
+	"portrait"    : "/mechanicalmod/entities/refined/parts/iron_cog/iron_cog.png",
+	"level_requirement" : 3,
+
+	"ingredients": [
+		{
+			"uri" : "stonehearth:refined:iron_ingot",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:parts:iron_cog"
+		}
+	]
+}

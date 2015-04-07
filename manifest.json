@@ -1,15 +1,19 @@
 {
 	"info" : {
 		"name" : "Mechanical Mod",
-		"version" : 5
+		"version" : 6
 	},
 	"aliases" : {
 		"refined:corn_meal" : "file(entities/refined/corn_meal)",
 		
-		"parts:iron_bearings" : "file(entities/refined/parts/iron_bearings)",
 		"parts:wood_cog" : "file(entities/refined/parts/wood_cog)",
 		"parts:wood_shaft" : "file(entities/refined/parts/wood_shaft)",
+		"parts:wood_base" : "file(entities/refined/parts/wood_base)",
 		"parts:stone_base" : "file(entities/refined/parts/stone_base)",
+		"parts:iron_bearings" : "file(entities/refined/parts/iron_bearings)",
+		"parts:iron_cog" : "file(entities/refined/parts/iron_cog)",
+		"parts:iron_shaft" : "file(entities/refined/parts/iron_shaft)",
+		"parts:iron_base" : "file(entities/refined/parts/iron_base)",
 		
 		"machines:drive_shaft" : "file(entities/machines/drive_shaft)",
 		"machines:long_drive_shaft" : "file(entities/machines/long_drive_shaft)",
@@ -21,6 +25,7 @@
 		
 		"machines:grinding_mill" : "file(entities/machines/grinding_mill)",
 		"machines:spinning_mule" : "file(entities/machines/spinning_mule)",
+		"machines:smelt_forge" : "file(entities/machines/smelt_forge)",
 		
 		"skeletons:water_wheel" : "file(data/rigs/water_wheel/water_wheel.json)",
 		"skeletons:drive_shaft" : "file(data/rigs/drive_shaft/drive_shaft.json)",
@@ -29,6 +34,7 @@
 		"skeletons:spinning_mule" : "file(data/rigs/spinning_mule/spinning_mule.json)",
 		"skeletons:gear_box_shaft" : "file(data/rigs/gear_box_shaft/gear_box_shaft.json)",
 		"skeletons:clutch_shaft" : "file(data/rigs/clutch_shaft/clutch_shaft.json)",
+		"skeletons:smelt_forge" : "file(data/rigs/smelt_forge/smelt_forge.json)",
 		
 		"engineer:workbench" : "file(jobs/engineer/engineer_workbench)",
 		"engineer:toolbox" : "file(jobs/engineer/engineer_toolbox)",
@@ -37,9 +43,13 @@
 		"commands:show_machine_details" : "file(data/commands/show_machine_details/show_machine_details.json)",
 		"commands:toggle_clutch" : "file(data/commands/toggle_clutch/toggle_clutch.json)",
 		
+		"actions:toggle_clutch" : "file(ai/actions/toggle_clutch.lua)",
+		"actions:deliver_material" : "file(ai/actions/deliver_material.lua)",
+		"actions:deliver_item" : "file(ai/actions/deliver_item.lua)",
 		"actions:deliver_grain" : "file(ai/actions/deliver_grain.lua)",
 		"actions:deliver_fiber" : "file(ai/actions/deliver_fiber.lua)",
-		"actions:toggle_clutch" : "file(ai/actions/toggle_clutch.lua)"
+		
+		"effects:smelt_forge" : "file(data/effects/smelt_forge_effect/smelt_forge_effect.json)"
 	},
 	"functions" : {
 		"toggle_power_level_view" : {
@@ -68,19 +78,21 @@
 	},
 	"components" : {
 		"water_wheel" : "file(components/water_wheel/water_wheel_component.lua)",
-		"drive_shaft" : "file(components/drive_shaft/drive_shaft_component.lua)",
 		"wind_sail" : "file(components/wind_sail/wind_sail_component.lua)",
 		
 		"processing_machine" : "file(components/processing_machine/processing_machine_component.lua)",
+		"advanced_processing_machine" : "file(components/advanced_processing_machine/advanced_processing_machine_component.lua)",
 		"gear_box" : "file(components/gear_box/gear_box_component.lua)",
 		"clutch" : "file(components/clutch/clutch_component.lua)",
+		"drive_shaft" : "file(components/drive_shaft/drive_shaft_component.lua)",
 		
 		"power_source" : "file(components/power_source/power_source_component.lua)",
 		"power_drain" : "file(components/power_drain/power_drain_component.lua)"
 	},
 	"component_renderers" : {
 		"power_source" : "file(renderers/power_source/power_source_renderer.lua)",
-		"power_drain" : "file(renderers/power_drain/power_drain_renderer.lua)"
+		"power_drain" : "file(renderers/power_drain/power_drain_renderer.lua)",
+		"advanced_processing_machine" : "file(renderers/advanced_processing_machine/advanced_processing_machine_renderer.lua)"
 	},
 	"mixintos" : {
 		"/stonehearth/jobs/blacksmith/recipes/recipes.json" : ["file(jobs/blacksmith/recipes/recipes.json)"],

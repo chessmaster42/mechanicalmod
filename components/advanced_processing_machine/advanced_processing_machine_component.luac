@@ -1,0 +1,439 @@
+local PowerLib = require 'lib.power_lib'
+local Point3 = _radiant.csg.Point3
+local rng = _radiant.csg.get_default_rng()
+local log = radiant.log.create_logger('machines')
+
+local AdvancedProcessingMachineComponent = class()
+
+function AdvancedProcessingMachineComponent:__init()
+end
+
+function AdvancedProcessingMachineComponent:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv._initialized = true
+		
+		self._sv.recipe_list = json.recipe_list	
+		self._sv.fuel_list = json.fuel_list
+		self._sv.inventory_size = json.inventory_size.material or 4
+		self._sv.fuel_inventory_size = json.inventory_size.fuel or 1
+		self._sv.processing_time = json.processing_time or 10
+		self._sv.fuel_time = 0
+		self._sv.active_effect = json.active_effect
+		self._sv.inactive_effect = json.inactive_effect
+		
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._render_info = self._entity:add_component('render_info')
+	self._is_processing = false
+	self._processing_delay = nil
+	self._deliver_ingredients_task = nil
+	self._deliver_fuel_task = nil
+	self._curent_recipe = nil
+	
+	self._power_lib = PowerLib()
+	
+	self:load_recipes()
+	
+	stonehearth.calendar:set_interval(10,
+		function()
+			self:_on_tick()
+		end
+	)
+	stonehearth.calendar:set_interval('1h',
+		function()
+			self:_on_fuel_tick()
+		end
+	)
+	stonehearth.calendar:set_interval('1m',
+		function()
+			self:_on_effect_tick()
+		end
+	)
+	
+	radiant.events.listen_once(entity, 'radiant:entity:pre_destroy',
+		function()
+			-- Upon destruction make sure all attached resources get dumped out onto the ground
+			radiant.entities.for_all_children(self._entity,
+				function(entity)
+					local origin = radiant.entities.get_world_grid_location(self._entity)
+					local location = radiant.terrain.find_placement_point(origin, 2, 6)
+					if not location then
+						location = radiant.terrain.find_placement_point(origin, 6, 12)
+					end
+					radiant.entities.remove_child(self._entity, entity)
+					if location then
+						radiant.terrain.place_entity(entity, location)
+					end
+				end
+			)
+		end
+	)
+end
+
+function AdvancedProcessingMachineComponent:_restore()
+	if not self._sv.fuel_time then
+		self._sv.fuel_time = 0
+		self.__saved_variables:mark_changed()
+	end
+end
+
+function AdvancedProcessingMachineComponent:destroy()
+	if self._effect then
+		self._effect:stop()
+		self._effect = nil
+	end
+end
+
+function AdvancedProcessingMachineComponent:load_recipes()
+	self._sv.recipes = {}
+	local raw_recipe_list = radiant.resources.load_json(self._sv.recipe_list)
+	local recipes = raw_recipe_list.craftable_recipes.production.recipes
+	for name,entry in pairs(recipes) do
+		table.insert(self._sv.recipes, radiant.resources.load_json(entry.recipe))
+	end
+	self.__saved_variables:mark_changed()
+end
+
+function AdvancedProcessingMachineComponent:get_processing_time()
+	return self._sv.processing_time
+end
+
+function AdvancedProcessingMachineComponent:get_inventory_size()
+	return self._sv.inventory_size
+end
+
+function AdvancedProcessingMachineComponent:get_inventory_amount()
+	local resource_count = 0
+	radiant.entities.for_all_children(self._entity,
+		function(entity)
+			for _,recipe in pairs(self._sv.recipes) do
+				for _,ingredient in pairs(recipe.ingredients) do
+					if ingredient.material then
+						if radiant.entities.is_material(entity, ingredient.material) then
+							resource_count = resource_count + 1
+							return
+						end
+					elseif ingredient.uri then
+						if entity:get_uri() == ingredient.uri then
+							resource_count = resource_count + 1
+							return
+						end
+					end
+				end
+			end
+		end
+	)
+	
+	return resource_count
+end
+
+function AdvancedProcessingMachineComponent:get_inventory_level()
+	local level = self:get_inventory_amount() / self:get_inventory_size()
+	if not self._sv.inventory_level or self._sv.inventory_level ~= level then
+		self._sv.inventory_level = level
+		self.__saved_variables:mark_changed()
+	end
+	
+	return level
+end
+
+function AdvancedProcessingMachineComponent:get_fuel_inventory_size()
+	return self._sv.fuel_inventory_size
+end
+
+function AdvancedProcessingMachineComponent:get_fuel_amount()
+	local resource_count = 0
+	radiant.entities.for_all_children(self._entity,
+		function(entity)
+			for _,fuel in pairs(self._sv.fuel_list) do
+				if fuel.material then
+					if radiant.entities.is_material(entity, fuel.material) then
+						resource_count = resource_count + 1
+						break
+					end
+				elseif fuel.uri then
+					if entity:get_uri() == fuel.uri then
+						resource_count = resource_count + 1
+						break
+					end
+				end
+			end
+		end
+	)
+	
+	return resource_count
+end
+
+function AdvancedProcessingMachineComponent:get_fuel_level()
+	local level = self:get_fuel_amount() / self:get_fuel_inventory_size()
+	if not self._sv.fuel_level or self._sv.fuel_level ~= level then
+		self._sv.fuel_level = level
+		self.__saved_variables:mark_changed()
+	end
+	
+	return level
+end
+
+function AdvancedProcessingMachineComponent:consume_fuel()
+	local current_count = 0
+	local fuel_entity = nil
+	local fuel_duration = 0
+	radiant.entities.for_all_children(self._entity,
+		function(entity)
+			for _,fuel in pairs(self._sv.fuel_list) do
+				if fuel_entity then
+					return
+				end
+				if fuel.material then
+					if radiant.entities.is_material(entity, fuel.material) then
+						fuel_entity = entity
+						fuel_duration = fuel.duration
+						return
+					end
+				elseif fuel.uri then
+					if entity:get_uri() == fuel.uri then
+						fuel_entity = entity
+						fuel_duration = fuel.duration
+						return
+					end
+				end
+			end
+		end
+	)
+
+	if fuel_entity then
+		log:error('DEBUG - Consuming fuel %s at machine %s', tostring(fuel_entity), tostring(self._entity))
+		radiant.entities.remove_child(self._entity, fuel_entity)
+		radiant.entities.destroy_entity(fuel_entity)
+	end
+	
+	return fuel_duration
+end
+
+function AdvancedProcessingMachineComponent:get_random_recipe_ingredient()
+	local random_index = rng:get_int(1, #self._sv.recipes)
+	local recipe = self._sv.recipes[random_index]
+	random_index = rng:get_int(1, #recipe.ingredients)
+	local ingredient = recipe.ingredients[random_index]
+	
+	return ingredient
+end
+
+function AdvancedProcessingMachineComponent:_fill_inventory()
+	-- If we are not full, schedule a task to have more brought in
+	if self:get_inventory_level() < 1.0 and not self._deliver_ingredients_task then
+		log:error('DEBUG - Scheduling ingredients delivery ...')
+		
+		local ingredient = self:get_random_recipe_ingredient()
+		if ingredient then
+			local town = stonehearth.town:get_town(self._entity)
+			local args = {}
+			args.entity = self._entity
+			local action = nil
+			if ingredient.material then
+				action = 'mechanicalmod:deliver_material'
+				args.material = ingredient.material
+			elseif ingredient.uri then
+				action = 'mechanicalmod:deliver_item'
+				args.uri = ingredient.uri
+			end
+			if action then
+				self._deliver_ingredients_task = town:create_task_for_group('stonehearth:task_group:restock', action, args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
+				self._deliver_ingredients_task:notify_completed(
+					function()
+						log:error('DEBUG - Ingredients delivery complete')
+						self._deliver_ingredients_task = nil
+					end
+				)
+			end
+		end
+	end
+	
+	-- If we are not full, schedule a task to have more brought in
+	if self:get_fuel_level() < 1.0 and not self._deliver_fuel_task then
+		log:error('DEBUG - Scheduling fuel delivery ...')
+		local town = stonehearth.town:get_town(self._entity)
+		local args = {}
+		args.entity = self._entity
+		-- TODO - Hardcoded fuel material here for now. Need better action to accept full fuel list
+		args.material = 'coal ore resource'
+		self._deliver_fuel_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:deliver_material', args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
+		self._deliver_fuel_task:notify_completed(
+			function()
+				log:error('DEBUG - Fuel delivery complete')
+				self._deliver_fuel_task = nil
+			end
+		)
+	end
+end
+
+function AdvancedProcessingMachineComponent:_process_resources()
+	if self._is_processing then
+		return
+	end
+	
+	local recipe_count = #self._sv.recipes
+	if recipe_count <= 0 then
+		self:load_recipes()
+		return
+	end
+	
+	local random_index = rng:get_int(1, recipe_count)
+	local recipe = self._sv.recipes[random_index]
+	if not recipe then
+		return
+	end
+	
+	local resources = {}
+	local total_ingredient_count = 0
+	for _,ingredient in pairs(recipe.ingredients) do
+		local ingredient_count_left = ingredient.count or 1
+		
+		total_ingredient_count = total_ingredient_count + ingredient_count_left
+		
+		radiant.entities.for_all_children(self._entity,
+			function(entity)
+				if ingredient_count_left <= 0 then
+					return
+				end
+				if ingredient.material then
+					if radiant.entities.is_material(entity, ingredient.material) then
+						table.insert(resources, entity)
+						ingredient_count_left = ingredient_count_left - 1
+						return
+					end
+				elseif ingredient.uri then
+					if entity:get_uri() == ingredient.uri then
+						table.insert(resources, entity)
+						ingredient_count_left = ingredient_count_left - 1
+						return
+					end
+				end
+			end
+		)
+	end
+	
+	if #resources ~= total_ingredient_count then
+		return
+	end
+	
+	-- Set the mutex
+	self._is_processing = true
+	
+	self._processing_delay = stonehearth.calendar:set_timer(self:get_processing_time() * 200,
+		function()
+			-- Consume all of the recipe ingredients
+			for _,resource in pairs(resources) do
+				radiant.entities.remove_child(self._entity, resource)
+				radiant.entities.destroy_entity(resource)
+			end
+	
+			local origin = radiant.entities.get_world_grid_location(self._entity)
+			if not origin then
+				return
+			end
+			
+			-- Produce all of the outputs
+			for _,produces in pairs(recipe.produces) do
+				-- Find a place to put the output
+				local location = radiant.terrain.find_placement_point(origin, 2, 4)
+				
+				-- Create the new item
+				local item = radiant.entities.create_entity(produces.item, {owner = self._entity})
+				radiant.terrain.place_entity(item, location)
+			end
+			
+			-- Clear the mutex
+			self._is_processing = false				
+		end
+	)
+end
+
+function AdvancedProcessingMachineComponent:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	if not power_drain then
+		return
+	end
+	
+	power_drain:set_is_enabled(true)
+	
+	local speed_percent = math.max(0, math.min(100, power_drain:get_speed()))
+	speed_percent = speed_percent - (speed_percent % 25)
+	
+	if not self._effect then
+		if speed_percent > 0 then
+			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
+		else
+			self._effect = radiant.effects.run_effect(self._entity, 'idle')
+		end
+	end
+	
+	self._effect:set_finished_cb(
+		function()
+			self._effect = nil
+			
+			-- Consume power and process resources as long as there was enough power
+			local delta = power_drain:remove_power(20)
+			if delta == 20 then
+				self:_process_resources()
+			else
+				power_drain:add_power(delta)
+			end
+		end
+	)
+	
+	self:_fill_inventory()
+	
+	if power_drain:get_power_level() < 20 then
+		power_drain:set_speed(0)
+		power_drain:set_torque(0)
+	end
+end
+
+function AdvancedProcessingMachineComponent:_on_fuel_tick()
+	if self._sv.fuel_time <= 0 then
+		self._sv.fuel_time = self:consume_fuel()
+	end
+	
+	self._sv.fuel_time = math.max(0, self._sv.fuel_time - 1)
+	self.__saved_variables:mark_changed()
+end
+
+function AdvancedProcessingMachineComponent:_on_effect_tick()
+	if not self._sv.active_effect then
+		return
+	end
+	
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	if not power_drain then
+		return
+	end
+	
+	if self:get_fuel_level() > 0 and power_drain:get_power() >= 20 then	
+		if not self._active_effect then
+			self._active_effect = radiant.effects.run_effect(self._entity, self._sv.active_effect)
+		
+			self._active_effect:set_finished_cb(
+				function()
+					self._active_effect = nil
+				end
+			)
+		end
+	else
+		if self._active_effect then
+			self._active_effect:stop()
+			self._active_effect = nil
+		end
+	end
+end
+	
+return AdvancedProcessingMachineComponent

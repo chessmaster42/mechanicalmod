@@ -1,7 +1,7 @@
 {
 	"type" : "recipe",
 	
-	"work_units"  : 10,
+	"work_units"  : 15,
 	"recipe_name" : "Wind Sail",
 	"description" : "Converts those pesky breezes into raw power!",
 	"portrait"    : "/mechanicalmod/entities/machines/wind_sail/wind_sail.png",
@@ -10,14 +10,14 @@
 	"ingredients" : [
 		{
 			"uri" : "mechanicalmod:parts:wood_shaft",
-			"count" : 2
+			"count" : 3
 		},
 		{
 			"uri" : "mechanicalmod:parts:wood_cog",
-			"count" : 1
+			"count" : 3
 		},
 		{
-			"uri" : "mechanicalmod:parts:stone_base",
+			"uri" : "mechanicalmod:parts:wood_base",
 			"count" : 2
 		},
 		{
@@ -25,8 +25,12 @@
 			"count" : 1
 		},
 		{
-			"material" : "fiber resource",
-			"count" : 4
+			"material" : "wood resource",
+			"count" : 2
+		},
+		{
+			"material" : "pelt resource",
+			"count" : 12
 		}
 	],
 	"produces": [

@@ -4,7 +4,7 @@
 	"name" : "Engineer",
 	"controller" : "mechanicalmod:class:engineer",
 	"description" : "The Engineer designs and builds complicated machinery from wood, stone, and metal.",
-	"requirements" : "1 levels of Blacksmith and Engineer's Toolbox, crafted by the Blacksmith.",
+	"requirements" : "1 level of Blacksmith and Engineer's Toolbox, crafted by the Blacksmith.",
 	
 	"abilities" : "file(engineer_abilities)",
 	
@@ -39,7 +39,14 @@
 		"portrait" : "file(/../mechanicalmod/jobs/engineer/engineer_workbench/engineer_workbench.png)",
 		"workbench_type" : "mechanicalmod:engineer:workbench",
 		"ingredients": [
-			{ "material" : "stone resource", "count" : 1 }
+			{
+				"material" : "stone resource",
+				"count" : 1
+			},
+			{
+				"material" : "wood resource",
+				"count" : 1
+			}
 		]
 	},
 	
@@ -47,12 +54,12 @@
 	"parent_level_requirement" : 1,
 	
 	"xp_rewards" : {
-		"craft_level_0" : 30, 
-		"craft_level_1" : 50, 
-		"craft_level_2" : 75,
-		"craft_level_3" : 100, 
-		"craft_level_4" : 150,
-		"craft_level_5" : 200
+		"craft_level_0" : 60, 
+		"craft_level_1" : 100, 
+		"craft_level_2" : 150,
+		"craft_level_3" : 200, 
+		"craft_level_4" : 300,
+		"craft_level_5" : 400
 	},
 
 	"max_level" : 6, 

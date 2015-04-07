@@ -34,6 +34,25 @@ function ProcessingMachineComponent:initialize(entity, json)
 			self:_on_tick()
 		end
 	)
+	
+	radiant.events.listen_once(entity, 'radiant:entity:pre_destroy',
+		function()
+			-- Upon destruction make sure all attached resources get dumped out onto the ground
+			radiant.entities.for_all_children(self._entity,
+				function(entity)
+					local origin = radiant.entities.get_world_grid_location(self._entity)
+					local location = radiant.terrain.find_placement_point(origin, 2, 6)
+					if not location then
+						location = radiant.terrain.find_placement_point(origin, 6, 12)
+					end
+					radiant.entities.remove_child(self._entity, entity)
+					if location then
+						radiant.terrain.place_entity(entity, location)
+					end
+				end
+			)
+		end
+	)
 end
 
 function ProcessingMachineComponent:_restore()
@@ -67,7 +86,6 @@ function ProcessingMachineComponent:_fill_inventory()
 	local resource_count = 0
 	radiant.entities.for_all_children(self._entity,
 		function(entity)
-			--log:error('DEBUG - children - entity=%s;material=%s', tostring(entity), tostring(self:get_material()))
 			local is_resource = radiant.entities.is_material(entity, self:get_material())
 			if is_resource then
 				resource_count = resource_count + 1
@@ -118,8 +136,6 @@ function ProcessingMachineComponent:_process_resources()
 				local item = radiant.entities.create_entity(self:get_product_uri(), {owner = self._entity})
 				radiant.terrain.place_entity(item, location)
 				
-				-- TODO - Create task to restock the product into stockpiles
-				
 				self._is_processing = false
 				
 				self._processing_delay:destroy()
@@ -141,17 +157,20 @@ function ProcessingMachineComponent:_on_tick()
 	
 	power_drain:set_is_enabled(true)
 	
-	-- Calculate which animation to use based on the power level
-	local power_level = math.max(0, math.min(100, power_drain:get_speed()))
-	local percent = power_level - (power_level % 25)
-	local effect_name = 'work_' .. tostring(percent)
-	
-	if power_drain:get_speed() == 0 then
-		effect_name = 'idle'
+	if power_drain:get_power_level() < 20 then
+		power_drain:set_speed(0)
+		power_drain:set_torque(0)
 	end
+
+	local speed_percent = math.max(0, math.min(100, power_drain:get_speed()))
+	speed_percent = speed_percent - (speed_percent % 25)
 	
 	if not self._effect then
-		self._effect = radiant.effects.run_effect(self._entity, effect_name):set_cleanup_on_finish(true)
+		if speed_percent > 0 then
+			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
+		else
+			self._effect = radiant.effects.run_effect(self._entity, 'idle')
+		end
 	end
 	
 	self._effect:set_finished_cb(
@@ -164,13 +183,9 @@ function ProcessingMachineComponent:_on_tick()
 				self:_process_resources()
 			else
 				power_drain:add_power(delta)
-				power_drain:set_speed(power_drain:get_speed() * 0.90)
-				power_drain:set_torque(power_drain:get_torque() * 0.90)
 			end
 		end
 	)
-	
-	--power_drain:remove_power(power_drain:get_rate() / 20)
 	
 	self:_fill_inventory()
 end

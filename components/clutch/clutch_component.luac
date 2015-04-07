@@ -67,28 +67,27 @@ function ClutchComponent:_on_tick()
 	
 	if self:get_state() == 1 then
 		power_source:set_is_enabled(true)
-		power_drain:set_is_enabled(true)
-	
-		-- Sync the speed between the dummy drain and source
-		power_source:set_speed(power_drain:get_speed())
-		
-		-- Average out the power between the dummy drain and source
-		local average_power_level = (power_source:get_power_level() + power_drain:get_power_level()) / 2
-		power_source:set_power_level(average_power_level)
-		power_drain:set_power_level(average_power_level)
+		power_drain:set_is_enabled(true)	
 	else
 		power_source:set_is_enabled(false)
 		power_drain:set_is_enabled(false)
 	
 		power_drain:set_power_level(0)
-		power_drain:set_speed(0)
-		power_drain:set_torque(0)
-		
-		power_source:set_power_level(0)
+	end
+
+	-- Sync the speed between the dummy drain and source
+	power_source:set_speed(power_drain:get_speed())
+	
+	-- Average out the power between the dummy drain and source
+	local average_power_level = (power_source:get_power_level() + power_drain:get_power_level()) / 2
+	power_source:set_power_level(average_power_level)
+	power_drain:set_power_level(average_power_level)
+
+	if power_source:get_power_level() < 0.1 then
 		power_source:set_speed(0)
 		power_source:set_torque(0)
 	end
-	
+
 	local speed_percent = math.max(0, math.min(400, power_source:get_speed()))
 	speed_percent = speed_percent - (speed_percent % 25)
 	if speed_percent >= 100 and speed_percent < 200 then
@@ -103,6 +102,10 @@ function ClutchComponent:_on_tick()
 
 	if not self._effect then
 		if speed_percent > 0 then
+			local effect_name = 'work_' .. tostring(speed_percent)
+			if self:get_state() == 0 then
+				effect_name = effect_name .. '_disconnected'
+			end
 			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
 		else
 			self._effect = radiant.effects.run_effect(self._entity, 'idle')

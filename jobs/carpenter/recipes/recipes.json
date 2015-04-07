@@ -9,6 +9,9 @@
 				},
 				"wood_shaft" : {
 					"recipe" : "file(wood_shaft_recipe.json)"
+				},
+				"wood_base" : {
+					"recipe" : "file(wood_base_recipe.json)"
 				}
 			}
 		}

@@ -3,7 +3,10 @@
 	"tracks": {
 		"animation": {
 			"type": "animation_effect",
-			"animation": "work.json"
+			"start_time": 0,
+			"speed": 0.75,
+			"animation": "work.json",
+			"loop": true
 		}
 	}
 }

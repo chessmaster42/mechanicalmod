@@ -50,7 +50,7 @@ function PowerAPIService:register_power_source(entity)
 	if not self._power_sources[id] then
 		local location = radiant.entities.get_world_grid_location(entity)
 		if location then
-			log:error('DEBUG - Registered %s @ %s as power source', tostring(entity), tostring(location))
+			--log:error('DEBUG - Registered %s @ %s as power source', tostring(entity), tostring(location))
 			self._power_sources[id] = entity
 		end
 	end
@@ -67,7 +67,7 @@ function PowerAPIService:unregister_power_source(entity)
 			end
 		end
 		
-		log:error('DEBUG - Unregistered %s as power source', tostring(entity))
+		--log:error('DEBUG - Unregistered %s as power source', tostring(entity))
 	end
 end
 
@@ -88,7 +88,7 @@ function PowerAPIService:register_power_drain(entity)
 	if not self._power_drains[id] then
 		local location = radiant.entities.get_world_grid_location(entity)
 		if location then
-			log:error('DEBUG - Registered %s @ %s as power drain', tostring(entity), tostring(location))
+			--log:error('DEBUG - Registered %s @ %s as power drain', tostring(entity), tostring(location))
 			self._power_drains[id] = entity
 		end
 	end
@@ -105,7 +105,7 @@ function PowerAPIService:unregister_power_drain(entity)
 			end
 		end
 		
-		log:error('DEBUG - Unregistered %s as power drain', tostring(entity))
+		--log:error('DEBUG - Unregistered %s as power drain', tostring(entity))
 	end
 end
 
@@ -219,18 +219,26 @@ function PowerAPIService:_update_power_channels()
 			-- Do nothing if either source or drain is disabled
 		else	
 			-- Simulate power loss from friction
-			source_cmp:remove_power(1)
+			source_cmp:remove_power(0.5)
 			
 			-- Average out the power between the drain and source
 			if source_cmp:get_power_level() > 0 then
 				local average_power_level = (source_cmp:get_power_level() + drain_cmp:get_power_level()) / 2
 				source_cmp:set_power_level(average_power_level)
 				drain_cmp:set_power_level(average_power_level)
+			else
+				--source_cmp:set_speed(0)
+				--source_cmp:set_torque(0)
 			end
 			
 			if source_cmp:get_speed() > 0 then
 				drain_cmp:set_speed(source_cmp:get_speed())
 				drain_cmp:set_torque(source_cmp:get_torque())
+			end
+			
+			if drain_cmp:get_power_level() == 0 then
+				--drain_cmp:set_speed(0)
+				--drain_cmp:set_torque(0)
 			end
 			
 			-- TODO - Move this logic to the gear box component
@@ -272,11 +280,6 @@ function PowerAPIService:_update_power_channels()
 				drain_cmp:set_speed(drain_cmp:get_speed() * ratio)
 				drain_cmp:set_torque(drain_cmp:get_torque() / ratio)
 			end
-		end
-		
-		if drain_cmp:get_power_level() == 0 then
-			drain_cmp:set_speed(0)
-			drain_cmp:set_torque(0)
 		end
 	end
 end

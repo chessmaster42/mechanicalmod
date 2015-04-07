@@ -1,7 +1,7 @@
 {
 	"skeleton" : {
-		"base": [0,0,0],
-		"shaft": [0,0,10]
+		"shaft": [0,0,10],
+		"gears": [0,0,10]
 	},
 	"animation_root" : "file(animations)",
 	"effects_root" : "file(effects)"

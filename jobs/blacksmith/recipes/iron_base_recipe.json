@@ -1,0 +1,21 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 10,
+	"recipe_name" : "Iron Base",
+	"description" : "Used to support various machines and machine parts",
+	"portrait"    : "/mechanicalmod/entities/refined/parts/iron_base/iron_base.png",
+	"level_requirement" : 3,
+
+	"ingredients": [
+		{
+			"uri" : "stonehearth:refined:iron_ingot",
+			"count" : 2
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:parts:iron_base"
+		}
+	]
+}

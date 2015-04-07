@@ -1,0 +1,13 @@
+local Entity = _radiant.om.Entity
+local log = radiant.log.create_logger('machines')
+
+local DeliverMaterialAction = class()
+
+DeliverMaterialAction.name = 'deliver material'
+DeliverMaterialAction.does = 'mechanicalmod:deliver_material'
+DeliverMaterialAction.args = {material='string',entity=Entity,}
+DeliverMaterialAction.version = 2
+DeliverMaterialAction.priority = 1
+
+local ai = stonehearth.ai
+return ai:create_compound_action(DeliverMaterialAction):execute('stonehearth:pickup_item_made_of',{material = ai.ARGS.material}):execute('stonehearth:goto_entity',{entity = ai.ARGS.entity}):execute('stonehearth:drop_carrying_into_entity_adjacent',{entity = ai.ARGS.entity})
