@@ -23,14 +23,18 @@
 				"mechanicalmod:commands:show_machine_details"
 			]
 		},
-		"mechanicalmod:drive_shaft" : {
-		},
 		"mechanicalmod:gear_box" : {
 			"ratio" : 2
 		},
 		"mechanicalmod:power_source" : {
+			"connectors" : {
+				"front" : true
+			}
 		},
 		"mechanicalmod:power_drain" : {
+			"connectors" : {
+				"back" : true
+			}
 		}
 	}
 }

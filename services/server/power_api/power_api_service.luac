@@ -25,12 +25,12 @@ function PowerAPIService:initialize()
 	self._power_drains = {}
 	self._power_channels = {}
 	
-	stonehearth.calendar:set_interval(10,
+	self._on_tick_interval = stonehearth.calendar:set_interval(25,
 		function()
 			self:_on_tick()
 		end
 	)
-	stonehearth.calendar:set_interval(1000,
+	self._recycle_channels_interval = stonehearth.calendar:set_interval('1h',
 		function()
 			self:_recycle_power_channels()
 		end
@@ -43,6 +43,14 @@ function PowerAPIService:_restore()
 end
 
 function PowerAPIService:destroy()
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._recycle_channels_interval then
+		self._recycle_channels_interval:destroy()
+		self._recycle_channels_interval = nil
+	end
 end
 
 function PowerAPIService:register_power_source(entity)
@@ -62,7 +70,7 @@ function PowerAPIService:unregister_power_source(entity)
 		self._power_sources[id] = nil
 		
 		for c_id,channel in pairs(self._power_channels) do
-			if channel.source:get_id() == id then
+			if channel.source and channel.source:get_id() == id then
 				self._power_channels[c_id] = nil
 			end
 		end
@@ -100,7 +108,7 @@ function PowerAPIService:unregister_power_drain(entity)
 		self._power_drains[id] = nil
 		
 		for c_id,channel in pairs(self._power_channels) do
-			if channel.drain:get_id() == id then
+			if channel.drain and channel.drain:get_id() == id then
 				self._power_channels[c_id] = nil
 			end
 		end
@@ -149,6 +157,64 @@ function PowerAPIService:get_connected_sources(drain)
 	return sources
 end
 
+function PowerAPIService:get_power_channel(channel_id)
+	if not channel_id or not self._power_channels[channel_id] then
+		return nil
+	end
+	
+	return self._power_channels[channel_id]
+end
+
+function PowerAPIService:activate_power_channel(channel_id)
+	if not channel_id or not self._power_channels[channel_id] then
+		return
+	end
+	
+	local channel = self._power_channels[channel_id]
+	channel.active = true
+end
+
+function PowerAPIService:deactivate_power_channel(channel_id)
+	if not channel_id or not self._power_channels[channel_id] then
+		return
+	end
+	
+	local channel = self._power_channels[channel_id]
+	if not channel.active then
+		return
+	end
+	
+	channel.active = false
+end
+
+function PowerAPIService:add_power_channel(source, drain)
+	if not source or not drain then
+		return nil
+	end
+	
+	local channel_id = source:get_id() .. '_' .. drain:get_id()
+	if self._power_channels[channel_id] then
+		return
+	end
+	
+	local entry = {}
+	entry.source = source
+	entry.drain = drain
+	entry.active = true
+	
+	self._power_channels[channel_id] = entry
+	
+	return channel_id
+end
+
+function PowerAPIService:remove_power_channel(channel_id)
+	if not channel_id or not self._power_channels[channel_id] then
+		return
+	end
+	
+	self._power_channels[channel_id] = nil
+end
+
 function PowerAPIService:_get_connection_region(entity)
 	local rcs = entity:get_component('region_collision_shape')
 	local region = Region3()
@@ -164,7 +230,7 @@ function PowerAPIService:_get_connection_region(entity)
 		return nil
 	end
 	local facing = math.floor(radiant.entities.get_facing(entity) + 0.5)
-	region = region:inflated(Point3(1, 0, 0))
+	region = region:inflated(Point3(1, 1, 0))
 	region = region:translated(Point3(-0.5,0,-0.5))
 	region = region:rotated(facing)
 	region = region:translated(Point3(0.5,0,0.5))
@@ -173,29 +239,94 @@ function PowerAPIService:_get_connection_region(entity)
 	return region
 end
 
-function PowerAPIService:_check_for_connected_sources(drain)
-	local d_id = drain:get_id()
+function PowerAPIService:_check_valid_connectors(source, drain)
+	local source_cmp = source:get_component('mechanicalmod:power_source')
+	local drain_cmp = drain:get_component('mechanicalmod:power_drain')
+	
+	local source_facing = math.floor(radiant.entities.get_facing(source) + 0.5)
+	local drain_facing = math.floor(radiant.entities.get_facing(drain) + 0.5)
+	local facing_delta = source_facing - drain_facing
+	local source_location = radiant.entities.get_world_grid_location(source)
+	local drain_location = radiant.entities.get_world_grid_location(drain)
+	local location_delta = source_location - drain_location
+	
+	local delta_x = 0
+	
+	if source_facing == 0 then
+		delta_x = location_delta.x
+	end
+	if source_facing == 90 then
+		delta_x = -location_delta.z
+	end
+	if source_facing == 180 then
+		delta_x = -location_delta.x
+	end
+	if source_facing == 270 then
+		delta_x = location_delta.z
+	end
+	
+	if facing_delta == 180 then
+		delta_x = -delta_x
+	end
+	
+	local source_connectors = source_cmp:get_connectors()
+	local drain_connectors = drain_cmp:get_connectors()
+	
+	-- If neither the source nor the drain have connectors, just return true
+	if not source_connectors and not drain_connectors then
+		return true
+	end
+	
+	--log:error('DEBUG - source=%s;drain=%s;source_facing=%s;facing_delta=%s;delta_x=%s', tostring(source), tostring(drain), tostring(source_facing), tostring(facing_delta), tostring(delta_x))
+	
+	local source_result = false
+	local drain_result = false
+	
+	if source_connectors then
+		if delta_x > 0 and source_connectors.front then
+			source_result = true
+		end
+		if delta_x < 0 and source_connectors.back then
+			source_result = true
+		end
+	else
+		-- Default this to true if there are no source connectors
+		source_result = true
+	end
+	if drain_connectors then
+		if delta_x > 0 and drain_connectors.back then
+			drain_result = true
+		end
+		if delta_x < 0 and drain_connectors.front then
+			drain_result = true
+		end
+	else
+		-- Default this to true if there are no drain connectors
+		drain_result = true
+	end
+	
+	local result = (source_result and drain_result)
+	
+	--log:error('DEBUG - source_result=%s;drain_result=%s;result=%s', tostring(source_result), tostring(drain_result), tostring(result))
+	
+	return result
+end
 
+function PowerAPIService:_check_for_connected_sources(drain)
 	local drain_region = self:_get_connection_region(drain)
 	if not drain_region then
 		self:unregister_power_drain(drain)
 		return
 	end
 	
-	for s_id,source in pairs(self._power_sources) do
-		local key = d_id .. "_" .. s_id
-		if source ~= drain and not self._power_channels[key] then
+	for _,source in pairs(self._power_sources) do
+		if source ~= drain then
 			local source_region = self:_get_connection_region(source)
 			if source_region then
 				local result = source_region:intersect_region(drain_region)
 				
 				if result and result:get_area() > 0 then
-					local entry = {}
-					entry.source = source
-					entry.drain = drain
-					self._power_channels[key] = entry
-					
-					--log:error('DEBUG - Added new power channel from %s to %s', tostring(source), tostring(drain))
+					self:add_power_channel(source, drain)
 				end
 			else
 				self:unregister_power_source(source)
@@ -209,78 +340,48 @@ function PowerAPIService:_update_power_channels()
 		self:_check_for_connected_sources(drain)
 	end
 	
+	-- Get the list of functional and active channels
+	local active_channels = {}
 	for c_id,channel in pairs(self._power_channels) do
+		if not channel or not channel.source or not channel.drain or channel.active ~= true then
+			-- Do nothing
+		else
+			if not self:is_registered_source(channel.source) or not self:is_registered_drain(channel.drain) then
+				-- Do nothing
+			else
+				local source_cmp = channel.source:get_component('mechanicalmod:power_source')
+				local drain_cmp = channel.drain:get_component('mechanicalmod:power_drain')
+				
+				if not source_cmp:get_is_enabled() or not drain_cmp:get_is_enabled() then
+					-- Do nothing
+				else
+					if self:_check_valid_connectors(channel.source, channel.drain) then
+						table.insert(active_channels, channel)
+					end
+				end
+			end
+		end
+	end
+	
+	-- Process the active channels
+	for _,channel in pairs(active_channels) do
 		local source_cmp = channel.source:get_component('mechanicalmod:power_source')
 		local drain_cmp = channel.drain:get_component('mechanicalmod:power_drain')
 		
-		if not channel or not self:is_registered_source(channel.source) or not self:is_registered_drain(channel.drain) then
-			self._power_channels[c_id] = nil		
-		elseif not source_cmp:get_is_enabled() or not drain_cmp:get_is_enabled() then
-			-- Do nothing if either source or drain is disabled
-		else	
-			-- Simulate power loss from friction
-			source_cmp:remove_power(0.5)
-			
-			-- Average out the power between the drain and source
-			if source_cmp:get_power_level() > 0 then
-				local average_power_level = (source_cmp:get_power_level() + drain_cmp:get_power_level()) / 2
-				source_cmp:set_power_level(average_power_level)
-				drain_cmp:set_power_level(average_power_level)
-			else
-				--source_cmp:set_speed(0)
-				--source_cmp:set_torque(0)
-			end
-			
-			if source_cmp:get_speed() > 0 then
-				drain_cmp:set_speed(source_cmp:get_speed())
-				drain_cmp:set_torque(source_cmp:get_torque())
-			end
-			
-			if drain_cmp:get_power_level() == 0 then
-				--drain_cmp:set_speed(0)
-				--drain_cmp:set_torque(0)
-			end
-			
-			-- TODO - Move this logic to the gear box component
-			local gear_box_cmp = channel.source:get_component('mechanicalmod:gear_box')
-			if gear_box_cmp then
-				local ratio = 1
-				
-				local source_facing = math.floor(radiant.entities.get_facing(channel.source) + 0.5)
-				local drain_facing = math.floor(radiant.entities.get_facing(channel.drain) + 0.5)
-				local facing_delta = math.abs(source_facing - drain_facing)
-				local source_location = radiant.entities.get_world_grid_location(channel.source)
-				local drain_location = radiant.entities.get_world_grid_location(channel.drain)
-				local location_delta = source_location - drain_location
-				local delta_x = 0
-				
-				if source_facing == 0 then
-					delta_x = location_delta.x
-				end
-				if source_facing == 90 then
-					delta_x = -location_delta.z
-				end
-				if source_facing == 180 then
-					delta_x = -location_delta.x
-				end
-				if source_facing == 270 then
-					delta_x = location_delta.z
-				end
-				
-				if facing_delta == 0 then
-					if delta_x > 0 then
-						ratio = gear_box_cmp:get_ratio()
-						if ratio < 0.1 then
-							ratio = 1
-						end
-					end
-				end
-				
-				-- Adjust the speed and torque based on the gearbox ratio
-				drain_cmp:set_speed(drain_cmp:get_speed() * ratio)
-				drain_cmp:set_torque(drain_cmp:get_torque() / ratio)
-			end
+		-- Average out the power
+		if source_cmp:get_power_level() > 0 then
+			local average_power_level = (source_cmp:get_power_level() + drain_cmp:get_power_level()) / 2
+			source_cmp:set_power_level(average_power_level * 0.9950)
+			drain_cmp:set_power_level(average_power_level * 0.9950)
 		end
+		
+		-- Sync the speed
+		if source_cmp:get_speed() > 0 then
+			drain_cmp:set_speed(source_cmp:get_speed())
+		end
+		
+		-- Take whichever torque value is higher
+		drain_cmp:set_torque(math.max(drain_cmp:get_torque(), source_cmp:get_torque()))
 	end
 end
 

@@ -4,7 +4,7 @@
 		"animation": {
 			"type": "animation_effect",
 			"start_time": 0,
-			"speed": 0.5,
+			"speed": 0.25,
 			"animation": "work.json",
 			"loop": true
 		}

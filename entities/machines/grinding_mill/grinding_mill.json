@@ -28,7 +28,12 @@
 			"product_uri" : "mechanicalmod:refined:corn_meal",
 			"restock_action" : "mechanicalmod:deliver_grain",
 			"inventory_size" : 4,
-			"processing_time" : 30
+			"processing_time" : 30,
+			"power" : {
+				"rate" : 20,
+				"min_speed" : 25,
+				"min_torque" : 200
+			}
 		},
 		"mechanicalmod:power_drain" : {
 		}

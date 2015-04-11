@@ -1,7 +1,7 @@
 {
 	"info" : {
 		"name" : "Mechanical Mod",
-		"version" : 6
+		"version" : 7
 	},
 	"aliases" : {
 		"refined:corn_meal" : "file(entities/refined/corn_meal)",
@@ -16,6 +16,7 @@
 		"parts:iron_base" : "file(entities/refined/parts/iron_base)",
 		
 		"machines:drive_shaft" : "file(entities/machines/drive_shaft)",
+		"machines:vertical_drive_shaft" : "file(entities/machines/vertical_drive_shaft)",
 		"machines:long_drive_shaft" : "file(entities/machines/long_drive_shaft)",
 		"machines:gear_box_shaft" : "file(entities/machines/gear_box_shaft)",
 		"machines:clutch_shaft" : "file(entities/machines/clutch_shaft)",
@@ -29,6 +30,7 @@
 		
 		"skeletons:water_wheel" : "file(data/rigs/water_wheel/water_wheel.json)",
 		"skeletons:drive_shaft" : "file(data/rigs/drive_shaft/drive_shaft.json)",
+		"skeletons:vertical_drive_shaft" : "file(data/rigs/vertical_drive_shaft/vertical_drive_shaft.json)",
 		"skeletons:grinding_mill" : "file(data/rigs/grinding_mill/grinding_mill.json)",
 		"skeletons:wind_sail" : "file(data/rigs/wind_sail/wind_sail.json)",
 		"skeletons:spinning_mule" : "file(data/rigs/spinning_mule/spinning_mule.json)",

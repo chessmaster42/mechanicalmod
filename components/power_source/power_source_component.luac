@@ -18,6 +18,7 @@ function PowerSource:initialize(entity, json)
 			self._sv.rate = 1
 			self._sv.max_stored_power = 100
 		end
+		self._sv.connectors = json.connectors
 		self._sv.view_mode = 0
 		self._sv.speed = 0
 		self._sv.torque = 0
@@ -71,6 +72,10 @@ function PowerSource:toggle_view_mode()
 		self._sv.view_mode = 0
 		self.__saved_variables:mark_changed()
 	end
+end
+
+function PowerSource:get_connectors()
+	return self._sv.connectors
 end
 
 function PowerSource:set_speed(speed)

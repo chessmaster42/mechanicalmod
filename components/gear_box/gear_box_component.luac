@@ -19,12 +19,17 @@ function GearBoxComponent:initialize(entity, json)
 	end
 	
 	self._render_info = self._entity:add_component('render_info')
-	
+
 	self._power_lib = PowerLib()
-	
-	stonehearth.calendar:set_interval(10,
+
+	self._on_tick_interval = stonehearth.calendar:set_interval(100,
 		function()
 			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+		function()
+			self:_on_animation_tick()
 		end
 	)
 end
@@ -38,9 +43,22 @@ end
 
 function GearBoxComponent:destroy()
 	self._effect = nil
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
 end
 
 function GearBoxComponent:get_ratio()
+	if not self._sv.ratio then
+		self._sv.ratio = 1
+		self.__saved_variables:mark_changed()
+	end
 	return self._sv.ratio
 end
 
@@ -58,7 +76,62 @@ function GearBoxComponent:_on_tick()
 		return
 	end
 	
-	-- TODO - Do gearbox-y things here
-end
+	local power_source = self._entity:get_component('mechanicalmod:power_source')
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
 	
+	if not power_source or not power_drain then
+		return
+	end
+	
+	power_source:set_is_enabled(true)
+	power_drain:set_is_enabled(true)
+	
+	-- Average out the power between the dummy drain and source
+	local average_power_level = (power_source:get_power_level() + power_drain:get_power_level()) / 2
+	power_source:set_power_level(average_power_level * 0.995)
+	power_drain:set_power_level(average_power_level * 0.995)
+
+	-- Sync the speed and torque based on the gear ratio
+	power_source:set_speed(power_drain:get_speed() * self:get_ratio())
+	power_source:set_torque(power_drain:get_torque() / self:get_ratio())
+end
+
+function GearBoxComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_source = self._entity:get_component('mechanicalmod:power_source')
+	local speed_percent = math.max(0, math.min(400, power_source:get_speed()))
+	if speed_percent > 0 and speed_percent < 25 then
+		speed_percent = 10
+	else
+		speed_percent = speed_percent - (speed_percent % 25)
+	end
+	if speed_percent >= 100 and speed_percent < 200 then
+		speed_percent = 100
+	end
+	if speed_percent >= 200 and speed_percent < 400 then
+		speed_percent = 200
+	end
+	if speed_percent >= 400 then
+		speed_percent = 400
+	end
+
+	if not self._effect then		
+		if speed_percent > 0 then
+			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
+		else
+			self._effect = radiant.effects.run_effect(self._entity, 'idle')
+		end
+	end
+	
+	self._effect:set_finished_cb(
+		function()
+			self._effect = nil
+			self:_on_animation_tick()
+		end
+	)
+end
+
 return GearBoxComponent

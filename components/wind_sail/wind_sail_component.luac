@@ -21,9 +21,14 @@ function WindSailComponent:initialize(entity, json)
 	
 	self._power_lib = PowerLib()
 	
-	stonehearth.calendar:set_interval(10,
+	self._on_tick_interval = stonehearth.calendar:set_interval(10,
 		function()
 			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+		function()
+			self:_on_animation_tick()
 		end
 	)
 end
@@ -33,6 +38,15 @@ end
 
 function WindSailComponent:destroy()
 	self._effect = nil
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
 end
 
 function WindSailComponent:_get_air_flow_rate()
@@ -55,12 +69,20 @@ function WindSailComponent:_on_tick()
 	
 	power_source:set_is_enabled(true)
 	power_source:add_power(self._flow_rate * 5)
-	power_source:set_speed(50 * self._flow_rate)
+	power_source:set_speed(100 * self._flow_rate)
+	power_source:set_torque(50 * self._flow_rate)
+end
+
+function WindSailComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
 	
+	local power_source = self._entity:get_component('mechanicalmod:power_source')
 	local speed_percent = math.max(0, math.min(100, power_source:get_speed()))
 	speed_percent = speed_percent - (speed_percent % 25)
-	
-	if not self._effect then
+
+	if not self._effect then		
 		if speed_percent > 0 then
 			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
 		else
@@ -71,6 +93,7 @@ function WindSailComponent:_on_tick()
 	self._effect:set_finished_cb(
 		function()
 			self._effect = nil
+			self:_on_animation_tick()
 		end
 	)
 end

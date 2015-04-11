@@ -17,8 +17,6 @@ function MachineCallHandler:toggle_power_level_view(session, response, entity)
 		power_drain:toggle_view_mode()
 	end
 	
-	log:error('DEBUG - Toggling power level view on %s', tostring(entity))
-	
 	return true
 end
 
@@ -39,6 +37,13 @@ function MachineCallHandler:save_machine_config(session, response, entity, confi
 
 	local gear_box_cmp = entity:get_component('mechanicalmod:gear_box')
 	if gear_box_cmp then
+		if not config.gear_ratio then
+			config.gear_ratio = 1
+		end
+		
+		-- Clamp the ratio between 0.25 and 4
+		config.gear_ratio = math.max(0.25, math.min(4, config.gear_ratio))
+		
 		gear_box_cmp:set_ratio(config.gear_ratio)
 	end
 	

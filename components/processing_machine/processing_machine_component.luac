@@ -12,11 +12,14 @@ function ProcessingMachineComponent:initialize(entity, json)
 	self._sv = self.__saved_variables:get_data()
 	if not self._sv._initialized then
 		self._sv._initialized = true
+		
 		self._sv.material = json.material
 		self._sv.product_uri = json.product_uri
 		self._sv.restock_action = json.restock_action
 		self._sv.inventory_size = json.inventory_size
 		self._sv.processing_time = json.processing_time
+		self._sv.power = json.power
+		
 		self.__saved_variables:mark_changed()
 	else
 		self:_restore()
@@ -29,9 +32,14 @@ function ProcessingMachineComponent:initialize(entity, json)
 	
 	self._power_lib = PowerLib()
 	
-	stonehearth.calendar:set_interval(10,
+	self._on_tick_interval = stonehearth.calendar:set_interval(100,
 		function()
 			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+		function()
+			self:_on_animation_tick()
 		end
 	)
 	
@@ -59,7 +67,58 @@ function ProcessingMachineComponent:_restore()
 end
 
 function ProcessingMachineComponent:destroy()
-	self._effect = nil
+	if self._effect then
+		self._effect:stop()
+		self._effect = nil
+	end
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
+end
+
+function ProcessingMachineComponent:get_power_rate()
+	if not self._sv.power then
+		self._sv.power = {}
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.power.rate then
+		self._sv.power.rate = 10.0
+		self.__saved_variables:mark_changed()
+	end
+	
+	return self._sv.power.rate
+end
+
+function ProcessingMachineComponent:get_min_speed()
+	if not self._sv.power then
+		self._sv.power = {}
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.power.min_speed then
+		self._sv.power.min_speed = 50
+		self.__saved_variables:mark_changed()
+	end
+	
+	return self._sv.power.min_speed
+end
+
+function ProcessingMachineComponent:get_min_torque()
+	if not self._sv.power then
+		self._sv.power = {}
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.power.min_torque then
+		self._sv.power.min_torque = 50
+		self.__saved_variables:mark_changed()
+	end
+	
+	return self._sv.power.min_torque
 end
 
 function ProcessingMachineComponent:get_material()
@@ -157,15 +216,41 @@ function ProcessingMachineComponent:_on_tick()
 	
 	power_drain:set_is_enabled(true)
 	
-	if power_drain:get_power_level() < 20 then
+	self:_fill_inventory()
+	
+	if power_drain:get_power_level() < 0.05 then
 		power_drain:set_speed(0)
 		power_drain:set_torque(0)
 	end
-
-	local speed_percent = math.max(0, math.min(100, power_drain:get_speed()))
-	speed_percent = speed_percent - (speed_percent % 25)
+end
 	
-	if not self._effect then
+function ProcessingMachineComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	local speed_percent = math.max(0, math.min(400, power_drain:get_speed()))
+	if speed_percent > 0 and speed_percent < 25 then
+		speed_percent = 10
+	else
+		speed_percent = speed_percent - (speed_percent % 25)
+	end
+	if speed_percent >= 100 and speed_percent < 200 then
+		speed_percent = 100
+	end
+	if speed_percent >= 200 and speed_percent < 400 then
+		speed_percent = 200
+	end
+	if speed_percent >= 400 then
+		speed_percent = 400
+	end
+
+	if power_drain:get_speed() < self:get_min_speed() or power_drain:get_torque() < self:get_min_torque() then
+		speed_percent = 0
+	end
+	
+	if not self._effect then		
 		if speed_percent > 0 then
 			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
 		else
@@ -176,18 +261,17 @@ function ProcessingMachineComponent:_on_tick()
 	self._effect:set_finished_cb(
 		function()
 			self._effect = nil
+			self:_on_animation_tick()
 			
 			-- Consume power and process resources as long as there was enough power
-			local delta = power_drain:remove_power(20)
-			if delta == 20 then
+			local delta = power_drain:remove_power(self:get_power_rate())
+			if delta == self:get_power_rate() and speed_percent > 0 then
 				self:_process_resources()
 			else
 				power_drain:add_power(delta)
 			end
 		end
 	)
-	
-	self:_fill_inventory()
 end
-	
+
 return ProcessingMachineComponent

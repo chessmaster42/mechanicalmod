@@ -7,6 +7,17 @@
 			</div>
 			
 			<div id="generalTab" class="tabPage">
+				<div>
+					<div class="fieldGroup">
+						<label for="machine_speed">Speed:</label>
+						<span id="machine_speed">{{machine_speed}}</span>
+					</div>
+					<div class="fieldGroup">
+						<label for="machine_torque">Torque:</label>
+						<span id="machine_torque">{{machine_torque}}</span>
+					</div>
+				</div>
+				
 				<div class="buttons">
 					<button {{action "toggleviewmode" target=view}}>
 						<img id="toggleViewButtonIcon"/>

@@ -18,7 +18,9 @@ App.MechanicalModMachineDetailsView = App.View.extend({
 
 	components: {
 		'unit_info' : {},
-		'mechanicalmod:gear_box' : {}
+		'mechanicalmod:gear_box' : {},
+		'mechanicalmod:power_source' : {},
+		'mechanicalmod:power_drain' : {}
 	},
 
 	init: function() {
@@ -56,15 +58,15 @@ App.MechanicalModMachineDetailsView = App.View.extend({
 		});
 		
 		$('#gearRatioSlider').slider({
-			min: 0.1,
-			max: 10,
-			step: 0.1,
+			min: 0.25,
+			max: 4,
+			step: 0.25,
 			slide: function( event, ui ) {
 				radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover'});
 				var delay = function() {
 					$("#gearRatioValue").html(ui.value).position({
-						my: 'center top',
-						at: 'center bottom',
+						my: 'center bottom',
+						at: 'center top',
 						of: ui.handle,
 						offset: "0, 10"
 					});
@@ -166,20 +168,39 @@ App.MechanicalModMachineDetailsView = App.View.extend({
 		if (machine_entity) {
 			self.set('context.machine_name', machine_entity.unit_info.name)
 			
-			if ((typeof machine_entity['mechanicalmod:gear_box']) == 'undefined' || machine_entity['mechanicalmod:gear_box'] == null || machine_entity['mechanicalmod:gear_box'].ratio == 0) {
-				$('#gearRatioSlider').slider("value", 1);
+			var gear_box = machine_entity['mechanicalmod:gear_box'];
+			var power_drain = machine_entity['mechanicalmod:power_drain'];
+			var power_source = machine_entity['mechanicalmod:power_source'];
+			
+			if (power_drain) {
+				self.set('context.machine_speed', power_drain.speed)
+				self.set('context.machine_torque', power_drain.torque)
+			} else if (power_source) {
+				self.set('context.machine_speed', power_source.speed)
+				self.set('context.machine_torque', power_source.torque)
+			} else {
+				self.set('context.machine_speed', 0)
+				self.set('context.machine_torque', 0)
+			}
+			
+			if ((typeof gear_box) == 'undefined' || gear_box == null || gear_box.ratio == 0) {
+				$('#gearRatioSlider').slider("value", 0);
 				$('#gearRatioSlider').slider("disable");
 			} else {
-				$('#gearRatioSlider').slider("value", machine_entity['mechanicalmod:gear_box'].ratio);
+				$('#gearRatioSlider').slider("value", gear_box.ratio);
 				$('#gearRatioSlider').slider("enable");
 			}
 
-			$('#gearRatioValue').html($('#gearRatioSlider').slider('values', 0)).position({
-				my: 'center top',
-				at: 'center bottom',
-				of: $('#gearRatioSlider a:eq(0)'),
-				offset: "0, 10"
-			});
+			var delay = function() {
+				var value = $('#gearRatioSlider').slider('values', 0)
+				$('#gearRatioValue').html(value).position({
+					my: 'center bottom',
+					at: 'center top',
+					of: $('#gearRatioSlider a:eq(0)'),
+					offset: "0, 10"
+				});
+			}
+			setTimeout(delay, 50);
 			
 			radiant.call('mechanicalmod:get_machine_config', machine_entity.__self).done(function(o) {
 			});

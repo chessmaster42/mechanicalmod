@@ -43,6 +43,9 @@
 				"long_drive_shaft" : {
 					"recipe" : "file(long_drive_shaft_recipe.json)"
 				},
+				"vertical_drive_shaft" : {
+					"recipe" : "file(vertical_drive_shaft_recipe.json)"
+				},
 				"gear_box_shaft" : {
 					"recipe" : "file(gear_box_shaft_recipe.json)"
 				},

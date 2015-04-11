@@ -22,6 +22,7 @@ function AdvancedProcessingMachineComponent:initialize(entity, json)
 		self._sv.fuel_time = 0
 		self._sv.active_effect = json.active_effect
 		self._sv.inactive_effect = json.inactive_effect
+		self._sv.power = json.power
 		
 		self.__saved_variables:mark_changed()
 	else
@@ -39,9 +40,14 @@ function AdvancedProcessingMachineComponent:initialize(entity, json)
 	
 	self:load_recipes()
 	
-	stonehearth.calendar:set_interval(10,
+	self._on_tick_interval = stonehearth.calendar:set_interval(100,
 		function()
 			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+		function()
+			self:_on_animation_tick()
 		end
 	)
 	stonehearth.calendar:set_interval('1h',
@@ -87,6 +93,15 @@ function AdvancedProcessingMachineComponent:destroy()
 		self._effect:stop()
 		self._effect = nil
 	end
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
 end
 
 function AdvancedProcessingMachineComponent:load_recipes()
@@ -97,6 +112,45 @@ function AdvancedProcessingMachineComponent:load_recipes()
 		table.insert(self._sv.recipes, radiant.resources.load_json(entry.recipe))
 	end
 	self.__saved_variables:mark_changed()
+end
+
+function AdvancedProcessingMachineComponent:get_power_rate()
+	if not self._sv.power then
+		self._sv.power = {}
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.power.rate then
+		self._sv.power.rate = 10.0
+		self.__saved_variables:mark_changed()
+	end
+	
+	return self._sv.power.rate
+end
+
+function AdvancedProcessingMachineComponent:get_min_speed()
+	if not self._sv.power then
+		self._sv.power = {}
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.power.min_speed then
+		self._sv.power.min_speed = 50
+		self.__saved_variables:mark_changed()
+	end
+	
+	return self._sv.power.min_speed
+end
+
+function AdvancedProcessingMachineComponent:get_min_torque()
+	if not self._sv.power then
+		self._sv.power = {}
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.power.min_torque then
+		self._sv.power.min_torque = 50
+		self.__saved_variables:mark_changed()
+	end
+	
+	return self._sv.power.min_torque
 end
 
 function AdvancedProcessingMachineComponent:get_processing_time()
@@ -207,7 +261,6 @@ function AdvancedProcessingMachineComponent:consume_fuel()
 	)
 
 	if fuel_entity then
-		log:error('DEBUG - Consuming fuel %s at machine %s', tostring(fuel_entity), tostring(self._entity))
 		radiant.entities.remove_child(self._entity, fuel_entity)
 		radiant.entities.destroy_entity(fuel_entity)
 	end
@@ -366,10 +419,46 @@ function AdvancedProcessingMachineComponent:_on_tick()
 	
 	power_drain:set_is_enabled(true)
 	
-	local speed_percent = math.max(0, math.min(100, power_drain:get_speed()))
-	speed_percent = speed_percent - (speed_percent % 25)
+	-- Drain power if there is fuel in the system
+	if self:get_fuel_level() > 0 then
+		power_drain:remove_power(self:get_power_rate())
+	end
 	
-	if not self._effect then
+	self:_fill_inventory()
+	
+	if power_drain:get_power_level() < 0.05 then
+		power_drain:set_speed(0)
+		power_drain:set_torque(0)
+	end
+end
+
+function AdvancedProcessingMachineComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	local speed_percent = math.max(0, math.min(400, power_drain:get_speed()))
+	if speed_percent > 0 and speed_percent < 25 then
+		speed_percent = 10
+	else
+		speed_percent = speed_percent - (speed_percent % 25)
+	end
+	if speed_percent >= 100 and speed_percent < 200 then
+		speed_percent = 100
+	end
+	if speed_percent >= 200 and speed_percent < 400 then
+		speed_percent = 200
+	end
+	if speed_percent >= 400 then
+		speed_percent = 400
+	end
+
+	if power_drain:get_speed() < self:get_min_speed() or power_drain:get_torque() < self:get_min_torque() then
+		speed_percent = 0
+	end
+	
+	if not self._effect then		
 		if speed_percent > 0 then
 			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
 		else
@@ -380,23 +469,15 @@ function AdvancedProcessingMachineComponent:_on_tick()
 	self._effect:set_finished_cb(
 		function()
 			self._effect = nil
+			self:_on_animation_tick()
 			
-			-- Consume power and process resources as long as there was enough power
-			local delta = power_drain:remove_power(20)
-			if delta == 20 then
+			-- Process resources as long as there was enough power
+			local power = power_drain:get_power()
+			if power >= 20 and speed_percent > 0 then
 				self:_process_resources()
-			else
-				power_drain:add_power(delta)
 			end
 		end
 	)
-	
-	self:_fill_inventory()
-	
-	if power_drain:get_power_level() < 20 then
-		power_drain:set_speed(0)
-		power_drain:set_torque(0)
-	end
 end
 
 function AdvancedProcessingMachineComponent:_on_fuel_tick()

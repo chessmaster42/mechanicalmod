@@ -22,9 +22,14 @@ function ClutchComponent:initialize(entity, json)
 	
 	self._power_lib = PowerLib()
 	
-	stonehearth.calendar:set_interval(10,
+	self._on_tick_interval = stonehearth.calendar:set_interval(100,
 		function()
 			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+		function()
+			self:_on_animation_tick()
 		end
 	)
 end
@@ -38,6 +43,15 @@ end
 
 function ClutchComponent:destroy()
 	self._effect = nil
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
 end
 
 function ClutchComponent:get_state()
@@ -83,13 +97,24 @@ function ClutchComponent:_on_tick()
 	power_source:set_power_level(average_power_level)
 	power_drain:set_power_level(average_power_level)
 
-	if power_source:get_power_level() < 0.1 then
+	if power_source:get_power_level() < 0.05 then
 		power_source:set_speed(0)
 		power_source:set_torque(0)
 	end
+end
 
+function ClutchComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_source = self._entity:get_component('mechanicalmod:power_source')
 	local speed_percent = math.max(0, math.min(400, power_source:get_speed()))
-	speed_percent = speed_percent - (speed_percent % 25)
+	if speed_percent > 0 and speed_percent < 25 then
+		speed_percent = 10
+	else
+		speed_percent = speed_percent - (speed_percent % 25)
+	end
 	if speed_percent >= 100 and speed_percent < 200 then
 		speed_percent = 100
 	end
@@ -100,12 +125,8 @@ function ClutchComponent:_on_tick()
 		speed_percent = 400
 	end
 
-	if not self._effect then
+	if not self._effect then		
 		if speed_percent > 0 then
-			local effect_name = 'work_' .. tostring(speed_percent)
-			if self:get_state() == 0 then
-				effect_name = effect_name .. '_disconnected'
-			end
 			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
 		else
 			self._effect = radiant.effects.run_effect(self._entity, 'idle')
@@ -115,6 +136,7 @@ function ClutchComponent:_on_tick()
 	self._effect:set_finished_cb(
 		function()
 			self._effect = nil
+			self:_on_animation_tick()
 		end
 	)
 end

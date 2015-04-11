@@ -57,7 +57,12 @@
 			},
 			"processing_time" : 10,
 			"active_effect" : "/mechanicalmod/data/effects/smelt_forge_effect",
-			"inactive_effect" : ""
+			"inactive_effect" : "",
+			"power" : {
+				"rate" : 10.0,
+				"min_speed" : 200,
+				"min_torque" : 25
+			}
 		},
 		"mechanicalmod:power_drain" : {
 		}
