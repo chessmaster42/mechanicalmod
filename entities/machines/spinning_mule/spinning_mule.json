@@ -28,7 +28,12 @@
 			"product_uri" : "stonehearth:refined:thread",
 			"restock_action" : "mechanicalmod:deliver_fiber",
 			"inventory_size" : 4,
-			"processing_time" : 10
+			"processing_time" : 10,
+			"power" : {
+				"rate" : 20,
+				"min_speed" : 100,
+				"min_torque" : 25
+			}
 		},
 		"mechanicalmod:power_drain" : {
 		}
