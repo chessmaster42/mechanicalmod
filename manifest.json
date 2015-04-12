@@ -1,10 +1,14 @@
 {
 	"info" : {
 		"name" : "Mechanical Mod",
-		"version" : 7
+		"version" : 8
 	},
 	"aliases" : {
 		"refined:corn_meal" : "file(entities/refined/corn_meal)",
+		"refined:lumber" : "file(entities/refined/lumber)",
+		
+		"containers:wood_barrel" : "file(entities/containers/wood_barrel)",
+		"containers:ethanol_barrel" : "file(entities/containers/ethanol_barrel)",
 		
 		"parts:wood_cog" : "file(entities/refined/parts/wood_cog)",
 		"parts:wood_shaft" : "file(entities/refined/parts/wood_shaft)",
@@ -27,6 +31,8 @@
 		"machines:grinding_mill" : "file(entities/machines/grinding_mill)",
 		"machines:spinning_mule" : "file(entities/machines/spinning_mule)",
 		"machines:smelt_forge" : "file(entities/machines/smelt_forge)",
+		"machines:saw_mill" : "file(entities/machines/saw_mill)",
+		"machines:fermenter" : "file(entities/machines/fermenter)",
 		
 		"skeletons:water_wheel" : "file(data/rigs/water_wheel/water_wheel.json)",
 		"skeletons:drive_shaft" : "file(data/rigs/drive_shaft/drive_shaft.json)",
@@ -37,6 +43,8 @@
 		"skeletons:gear_box_shaft" : "file(data/rigs/gear_box_shaft/gear_box_shaft.json)",
 		"skeletons:clutch_shaft" : "file(data/rigs/clutch_shaft/clutch_shaft.json)",
 		"skeletons:smelt_forge" : "file(data/rigs/smelt_forge/smelt_forge.json)",
+		"skeletons:saw_mill" : "file(data/rigs/saw_mill/saw_mill.json)",
+		"skeletons:fermenter" : "file(data/rigs/fermenter/fermenter.json)",
 		
 		"engineer:workbench" : "file(jobs/engineer/engineer_workbench)",
 		"engineer:toolbox" : "file(jobs/engineer/engineer_toolbox)",
@@ -103,6 +111,8 @@
 		
 		"/stonehearth/jobs/farmer/farmer_abilities/farmer_abilities.json" : ["file(jobs/farmer/farmer_abilities/farmer_abilities.json)"],
 		"/stonehearth/jobs/weaver/weaver_abilities/weaver_abilities.json" : ["file(jobs/weaver/weaver_abilities/weaver_abilities.json)"],
+		"/stonehearth/jobs/carpenter/carpenter_abilities/carpenter_abilities.json" : ["file(jobs/carpenter/carpenter_abilities/carpenter_abilities.json)"],
+		"/stonehearth/jobs/blacksmith/blacksmith_abilities/blacksmith_abilities.json" : ["file(jobs/blacksmith/blacksmith_abilities/blacksmith_abilities.json)"],
 		
 		"/stonehearth/mixins/base_human/base_human.json" : ["file(mixins/base_human/base_human.json)"]
 	},

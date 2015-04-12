@@ -22,7 +22,7 @@ function DriveShaftComponent:initialize(entity, json)
 	
 	self._power_lib = PowerLib()
 	
-	self._on_tick_interval = stonehearth.calendar:set_interval(100,
+	self._on_tick_interval = stonehearth.calendar:set_interval(50,
 		function()
 			self:_on_tick()
 		end
@@ -67,15 +67,15 @@ function DriveShaftComponent:_on_tick()
 	
 	-- Average out the power between the dummy drain and source
 	local average_power_level = (power_source:get_power_level() + power_drain:get_power_level()) / 2
-	power_source:set_power_level(average_power_level * 0.995)
-	power_drain:set_power_level(average_power_level * 0.995)
+	power_source:set_power_level(average_power_level * self._power_lib:get_friction_multiplier())
+	power_drain:set_power_level(average_power_level)
 
 	-- Sync the speed and torque between the dummy drain and source
 	power_source:set_speed(power_drain:get_speed())
 	power_source:set_torque(power_drain:get_torque())
 	
-	if power_source:get_power_level() < 0.2 then
-		power_source:set_speed(power_source:get_speed() * 0.95)
+	if power_source:get_power_level() < 0.25 then
+		power_source:set_torque(power_source:get_torque() * 0.9)
 	end
 	if power_source:get_power_level() < 0.05 then
 		-- Zero out the speed and torque

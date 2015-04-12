@@ -26,7 +26,6 @@
 		"mechanicalmod:processing_machine" : {
 			"material" : "food_container corn",
 			"product_uri" : "mechanicalmod:refined:corn_meal",
-			"restock_action" : "mechanicalmod:deliver_grain",
 			"inventory_size" : 4,
 			"processing_time" : 30,
 			"power" : {

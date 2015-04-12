@@ -1,0 +1,25 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 10,
+	"recipe_name" : "Empty Wood Barrel",
+	"description" : "Can hold all sorts of liquids",
+	"portrait"    : "/mechanicalmod/entities/containers/wood_barrel/wood_barrel.png",
+	"level_requirement" : 2,
+
+	"ingredients": [
+		{
+			"uri" : "mechanicalmod:refined:lumber",
+			"count" : 1
+		},
+		{
+			"uri" : "stonehearth:refined:iron_ingot",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:containers:wood_barrel"
+		}
+	]
+}

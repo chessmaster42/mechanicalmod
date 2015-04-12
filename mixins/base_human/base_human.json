@@ -4,9 +4,7 @@
 			"actions" : [
 				"mechanicalmod:actions:toggle_clutch",
 				"mechanicalmod:actions:deliver_material",
-				"mechanicalmod:actions:deliver_item",
-				"mechanicalmod:actions:deliver_fiber",
-				"mechanicalmod:actions:deliver_grain"
+				"mechanicalmod:actions:deliver_item"
 			]
 		}
 	}

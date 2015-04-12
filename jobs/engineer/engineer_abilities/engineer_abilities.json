@@ -31,7 +31,10 @@
 					"stonehearth:actions:place_item",
 					"stonehearth:actions:place_item_on_structure",
 					"stonehearth:actions:place_carrying_on_structure_adjacent",
-					"stonehearth:actions:replace_proxy_with_item"
+					"stonehearth:actions:replace_proxy_with_item",
+					
+					"mechanicalmod:actions:deliver_material",
+					"mechanicalmod:actions:deliver_item"
 				],
 				"observers" : [
 					"stonehearth:observers:combat_panic"

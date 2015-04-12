@@ -43,4 +43,8 @@ function PowerLib:is_machine_placed(entity)
 	return true
 end
 
+function PowerLib:get_friction_multiplier()
+	return 0.9950
+end
+
 return PowerLib

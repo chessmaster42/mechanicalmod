@@ -1,0 +1,28 @@
+{
+	"type" : "recipe",
+
+	"work_units"  : 10,
+	"recipe_name" : "Ethanol",
+	"description" : "Product of fermenting cornmeal",
+	"flavor"      : "White lightning!",
+	"portrait"    : "/stonehearth/entities/containers/ethanol_barrel/ethanol_barrel.png",
+	"level_requirement" : 0,
+
+	"priority" : 100,
+
+	"ingredients": [
+		{
+			"uri" : "mechanicalmod:refined:corn_meal",
+			"count" : 4
+		},
+		{
+			"uri" : "mechanicalmod:containers:wood_barrel",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:containers:ethanol_barrel"
+		}
+	]
+}

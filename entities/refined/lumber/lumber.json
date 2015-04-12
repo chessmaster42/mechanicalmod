@@ -1,0 +1,39 @@
+{
+	"mixins": "stonehearth:mixins:item_properties",
+	"type": "entity",
+	"components": {
+		"item": {
+			"category" : "refined"
+		},
+		"model_variants": {
+			"default": {
+				"models": [
+					"file(lumber.qb)"
+				]
+			}
+		},
+		"unit_info": {
+			"name": "Lumber",
+			"description": "Wood boards cut to size",
+			"icon" : "file(lumber.png)"
+		},
+		"stonehearth:material" : {
+			"tags" :  "wood refined lumber"
+		},
+		"mob" : {
+			"model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+		}
+	},
+	"entity_data" : {
+		"stonehearth:net_worth" : {
+			"value_in_gold" : 3,
+			"rarity" : "common",
+			"shop_info" : {
+				"buyable" : true,
+				"sellable" : true,
+				"shopkeeper_level" : 1,
+				"shopkeeper_type" : "caravan"
+			}
+		}
+	}
+}

@@ -20,7 +20,9 @@ App.MechanicalModMachineDetailsView = App.View.extend({
 		'unit_info' : {},
 		'mechanicalmod:gear_box' : {},
 		'mechanicalmod:power_source' : {},
-		'mechanicalmod:power_drain' : {}
+		'mechanicalmod:power_drain' : {},
+		'mechanicalmod:processing_machine' : {},
+		'mechanicalmod:advanced_processing_machine' : {}
 	},
 
 	init: function() {
@@ -171,6 +173,8 @@ App.MechanicalModMachineDetailsView = App.View.extend({
 			var gear_box = machine_entity['mechanicalmod:gear_box'];
 			var power_drain = machine_entity['mechanicalmod:power_drain'];
 			var power_source = machine_entity['mechanicalmod:power_source'];
+			var processing_machine = machine_entity['mechanicalmod:processing_machine'];
+			var adv_proc_machine = machine_entity['mechanicalmod:advanced_processing_machine'];
 			
 			if (power_drain) {
 				self.set('context.machine_speed', power_drain.speed)
@@ -181,6 +185,17 @@ App.MechanicalModMachineDetailsView = App.View.extend({
 			} else {
 				self.set('context.machine_speed', 0)
 				self.set('context.machine_torque', 0)
+			}
+			
+			if (processing_machine) {
+				self.set('context.machine_min_speed', processing_machine.power.min_speed)
+				self.set('context.machine_min_torque', processing_machine.power.min_torque)
+			} else if (adv_proc_machine) {
+				self.set('context.machine_min_speed', adv_proc_machine.power.min_speed)
+				self.set('context.machine_min_torque', adv_proc_machine.power.min_torque)
+			} else {
+				self.set('context.machine_min_speed', 0)
+				self.set('context.machine_min_torque', 0)
 			}
 			
 			if ((typeof gear_box) == 'undefined' || gear_box == null || gear_box.ratio == 0) {

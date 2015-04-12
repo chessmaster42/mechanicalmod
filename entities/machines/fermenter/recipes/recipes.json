@@ -1,0 +1,11 @@
+{
+	"craftable_recipes" : {
+		"production" : {
+			"recipes" : {
+				"ethanol" : {
+					"recipe" : "file(ethanol_recipe.json)"
+				}
+			}
+		}
+	}
+}

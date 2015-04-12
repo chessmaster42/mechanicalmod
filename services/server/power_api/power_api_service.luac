@@ -25,7 +25,7 @@ function PowerAPIService:initialize()
 	self._power_drains = {}
 	self._power_channels = {}
 	
-	self._on_tick_interval = stonehearth.calendar:set_interval(25,
+	self._on_tick_interval = stonehearth.calendar:set_interval(10,
 		function()
 			self:_on_tick()
 		end
@@ -51,6 +51,12 @@ function PowerAPIService:destroy()
 		self._recycle_channels_interval:destroy()
 		self._recycle_channels_interval = nil
 	end
+end
+
+function PowerAPIService:get_power_lib()
+	local power_lib = require('lib.power_lib')()
+	
+	return power_lib
 end
 
 function PowerAPIService:register_power_source(entity)
@@ -217,14 +223,7 @@ end
 
 function PowerAPIService:_get_connection_region(entity)
 	local rcs = entity:get_component('region_collision_shape')
-	local region = Region3()
-	if rcs then
-		region = rcs:get_region():get()
-	end
-	if region:get_area() <= 0 then
-		--log:error('DEBUG - %s has no rcs!', tostring(entity))
-		region:add_cube(Cube3(Point3(-1, 0, 0), Point3(2, 1, 1)))
-	end
+	local region = rcs:get_region():get()
 	local location = radiant.entities.get_world_grid_location(entity)
 	if not location then
 		return nil
@@ -371,8 +370,8 @@ function PowerAPIService:_update_power_channels()
 		-- Average out the power
 		if source_cmp:get_power_level() > 0 then
 			local average_power_level = (source_cmp:get_power_level() + drain_cmp:get_power_level()) / 2
-			source_cmp:set_power_level(average_power_level * 0.9950)
-			drain_cmp:set_power_level(average_power_level * 0.9950)
+			source_cmp:set_power_level(average_power_level * self:get_power_lib():get_friction_multiplier())
+			drain_cmp:set_power_level(average_power_level)
 		end
 		
 		-- Sync the speed
@@ -380,8 +379,8 @@ function PowerAPIService:_update_power_channels()
 			drain_cmp:set_speed(source_cmp:get_speed())
 		end
 		
-		-- Take whichever torque value is higher
-		drain_cmp:set_torque(math.max(drain_cmp:get_torque(), source_cmp:get_torque()))
+		-- Sync the torque
+		drain_cmp:set_torque(source_cmp:get_torque())
 	end
 end
 

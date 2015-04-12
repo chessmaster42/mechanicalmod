@@ -13,6 +13,13 @@
 				"wood_base" : {
 					"recipe" : "file(wood_base_recipe.json)"
 				}
+			},
+			"ordinal" : 15, 
+			"name" : "Containers", 
+			"recipes" : {
+				"wood_barrel" : {
+					"recipe" : "file(wood_barrel_recipe.json)"
+				}
 			}
 		}
 	}

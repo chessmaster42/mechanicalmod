@@ -280,8 +280,6 @@ end
 function AdvancedProcessingMachineComponent:_fill_inventory()
 	-- If we are not full, schedule a task to have more brought in
 	if self:get_inventory_level() < 1.0 and not self._deliver_ingredients_task then
-		log:error('DEBUG - Scheduling ingredients delivery ...')
-		
 		local ingredient = self:get_random_recipe_ingredient()
 		if ingredient then
 			local town = stonehearth.town:get_town(self._entity)
@@ -299,7 +297,6 @@ function AdvancedProcessingMachineComponent:_fill_inventory()
 				self._deliver_ingredients_task = town:create_task_for_group('stonehearth:task_group:restock', action, args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
 				self._deliver_ingredients_task:notify_completed(
 					function()
-						log:error('DEBUG - Ingredients delivery complete')
 						self._deliver_ingredients_task = nil
 					end
 				)
@@ -309,7 +306,6 @@ function AdvancedProcessingMachineComponent:_fill_inventory()
 	
 	-- If we are not full, schedule a task to have more brought in
 	if self:get_fuel_level() < 1.0 and not self._deliver_fuel_task then
-		log:error('DEBUG - Scheduling fuel delivery ...')
 		local town = stonehearth.town:get_town(self._entity)
 		local args = {}
 		args.entity = self._entity
@@ -318,7 +314,6 @@ function AdvancedProcessingMachineComponent:_fill_inventory()
 		self._deliver_fuel_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:deliver_material', args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
 		self._deliver_fuel_task:notify_completed(
 			function()
-				log:error('DEBUG - Fuel delivery complete')
 				self._deliver_fuel_task = nil
 			end
 		)
@@ -402,9 +397,34 @@ function AdvancedProcessingMachineComponent:_process_resources()
 			end
 			
 			-- Clear the mutex
-			self._is_processing = false				
+			self._is_processing = false
 		end
 	)
+end
+
+function AdvancedProcessingMachineComponent:_get_speed_percent()
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	local speed_percent = math.max(0, math.min(400, power_drain:get_speed()))
+	if speed_percent > 0 and speed_percent < 25 then
+		speed_percent = 10
+	else
+		speed_percent = speed_percent - (speed_percent % 25)
+	end
+	if speed_percent >= 100 and speed_percent < 200 then
+		speed_percent = 100
+	end
+	if speed_percent >= 200 and speed_percent < 400 then
+		speed_percent = 200
+	end
+	if speed_percent >= 400 then
+		speed_percent = 400
+	end
+
+	if power_drain:get_speed() < self:get_min_speed() or power_drain:get_torque() < self:get_min_torque() then
+		speed_percent = 0
+	end
+	
+	return speed_percent
 end
 
 function AdvancedProcessingMachineComponent:_on_tick()
@@ -437,28 +457,8 @@ function AdvancedProcessingMachineComponent:_on_animation_tick()
 		return
 	end
 	
-	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
-	local speed_percent = math.max(0, math.min(400, power_drain:get_speed()))
-	if speed_percent > 0 and speed_percent < 25 then
-		speed_percent = 10
-	else
-		speed_percent = speed_percent - (speed_percent % 25)
-	end
-	if speed_percent >= 100 and speed_percent < 200 then
-		speed_percent = 100
-	end
-	if speed_percent >= 200 and speed_percent < 400 then
-		speed_percent = 200
-	end
-	if speed_percent >= 400 then
-		speed_percent = 400
-	end
-
-	if power_drain:get_speed() < self:get_min_speed() or power_drain:get_torque() < self:get_min_torque() then
-		speed_percent = 0
-	end
-	
-	if not self._effect then		
+	if not self._effect then
+		local speed_percent = self:_get_speed_percent()
 		if speed_percent > 0 then
 			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
 		else
@@ -471,9 +471,8 @@ function AdvancedProcessingMachineComponent:_on_animation_tick()
 			self._effect = nil
 			self:_on_animation_tick()
 			
-			-- Process resources as long as there was enough power
-			local power = power_drain:get_power()
-			if power >= 20 and speed_percent > 0 then
+			local speed_percent = self:_get_speed_percent()
+			if speed_percent > 0 then
 				self:_process_resources()
 			end
 		end
@@ -500,7 +499,7 @@ function AdvancedProcessingMachineComponent:_on_effect_tick()
 	end
 	
 	if self:get_fuel_level() > 0 and power_drain:get_power() >= 20 then	
-		if not self._active_effect then
+		if not self._active_effect and self._sv.active_effect ~= '' then
 			self._active_effect = radiant.effects.run_effect(self._entity, self._sv.active_effect)
 		
 			self._active_effect:set_finished_cb(

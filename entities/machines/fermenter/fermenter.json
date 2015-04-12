@@ -1,0 +1,50 @@
+{
+	"mixins" : "file(fermenter_ghost.json)",
+	"type": "entity",
+	"components": {
+		"render_info" : {
+			"animation_table" : "mechanicalmod:skeletons:fermenter"
+		},
+		"stonehearth:entity_forms" : {
+			"ghost_form" : "file(fermenter_ghost.json)",
+			"iconic_form" : "file(fermenter_iconic.json)",
+			"placeable_on_ground" : true
+		},
+		"region_collision_shape" : {
+			"region": [
+				{
+					"min" : { "x" : -2, "y" : 0, "z" : 0 },
+					"max" : { "x" : -1, "y" : 1, "z" : 1 }
+				}
+			]
+		},
+		"stonehearth:commands" : {
+			"commands" : [
+				"mechanicalmod:commands:show_machine_details"
+			]
+		},
+		"mechanicalmod:advanced_processing_machine" : {
+			"recipe_list" : "/mechanicalmod/entities/machines/fermenter/recipes/recipes.json",
+			"fuel_list" : [
+				{
+					"uri" : "stonehearth:resources:coal:lump_of_coal",
+					"duration" : 10
+				}
+			],
+			"inventory_size" : {
+				"material" : 20,
+				"fuel" : 2
+			},
+			"processing_time" : 10,
+			"active_effect" : "",
+			"inactive_effect" : "",
+			"power" : {
+				"rate" : 20.0,
+				"min_speed" : 50,
+				"min_torque" : 100
+			}
+		},
+		"mechanicalmod:power_drain" : {
+		}
+	}
+}

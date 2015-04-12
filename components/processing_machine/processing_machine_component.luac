@@ -15,7 +15,6 @@ function ProcessingMachineComponent:initialize(entity, json)
 		
 		self._sv.material = json.material
 		self._sv.product_uri = json.product_uri
-		self._sv.restock_action = json.restock_action
 		self._sv.inventory_size = json.inventory_size
 		self._sv.processing_time = json.processing_time
 		self._sv.power = json.power
@@ -129,10 +128,6 @@ function ProcessingMachineComponent:get_product_uri()
 	return self._sv.product_uri
 end
 
-function ProcessingMachineComponent:get_restock_action()
-	return self._sv.restock_action
-end
-
 function ProcessingMachineComponent:get_inventory_size()
 	return self._sv.inventory_size
 end
@@ -155,7 +150,10 @@ function ProcessingMachineComponent:_fill_inventory()
 	-- If we are not full, schedule a task to have more brought in
 	if resource_count <= self:get_inventory_size() and not self._processing_task then
 		local town = stonehearth.town:get_town(self._entity)
-		self._processing_task = town:create_task_for_group('stonehearth:task_group:restock', self:get_restock_action()):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
+		local args = {}
+		args.material = self:get_material()
+		args.entity = self._entity
+		self._processing_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:deliver_material', args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
 		self._processing_task:notify_completed(
 			function()
 				self._processing_task = nil

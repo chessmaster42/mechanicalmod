@@ -9,12 +9,20 @@
 			<div id="generalTab" class="tabPage">
 				<div>
 					<div class="fieldGroup">
-						<label for="machine_speed">Speed:</label>
-						<span id="machine_speed">{{machine_speed}}</span>
+						<label for="machine_speed">Current Speed:</label>
+						<span id="machine_speed">{{machine_speed}} rad/s</span>
 					</div>
 					<div class="fieldGroup">
-						<label for="machine_torque">Torque:</label>
-						<span id="machine_torque">{{machine_torque}}</span>
+						<label for="machine_torque">Current Torque:</label>
+						<span id="machine_torque">{{machine_torque}} Nm</span>
+					</div>
+					<div class="fieldGroup">
+						<label for="machine_speed">Required Speed:</label>
+						<span id="machine_speed">{{machine_min_speed}} rad/s</span>
+					</div>
+					<div class="fieldGroup">
+						<label for="machine_torque">Required Torque:</label>
+						<span id="machine_torque">{{machine_min_torque}} Nm</span>
 					</div>
 				</div>
 				

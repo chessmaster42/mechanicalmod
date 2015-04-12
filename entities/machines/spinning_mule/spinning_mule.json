@@ -26,7 +26,6 @@
 		"mechanicalmod:processing_machine" : {
 			"material" : "fiber resource",
 			"product_uri" : "stonehearth:refined:thread",
-			"restock_action" : "mechanicalmod:deliver_fiber",
 			"inventory_size" : 4,
 			"processing_time" : 10,
 			"power" : {

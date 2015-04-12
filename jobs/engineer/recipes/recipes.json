@@ -30,6 +30,12 @@
 				},
 				"smelt_forge" : {
 					"recipe" : "file(smelt_forge_recipe.json)"
+				},
+				"saw_mill" : {
+					"recipe" : "file(saw_mill_recipe.json)"
+				},
+				"fermenter" : {
+					"recipe" : "file(fermenter_recipe.json)"
 				}
 			}
 		},
