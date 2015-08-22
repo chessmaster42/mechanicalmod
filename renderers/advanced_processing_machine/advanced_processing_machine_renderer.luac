@@ -73,7 +73,7 @@ function AdvancedProcessingMachineRenderer:_update()
 	render_region:add_cube(inventory_cube)
 	render_region:add_cube(fuel_cube)
 	
-	self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, color, color)
+	self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, color, color, '')
 end
 
 return AdvancedProcessingMachineRenderer

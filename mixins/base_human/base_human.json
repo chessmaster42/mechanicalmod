@@ -1,10 +1,17 @@
 {
 	"components" : {
-		"stonehearth:ai" : {
-			"actions" : [
-				"mechanicalmod:actions:toggle_clutch",
-				"mechanicalmod:actions:deliver_material",
-				"mechanicalmod:actions:deliver_item"
+		"stonehearth:equipment_piece" : {
+			"injected_ai" : {
+				"ai_packs" : [
+					"mechanicalmod:ai_pack:core"
+				]
+			}
+		}
+	},
+	"entity_data" : {
+		"stonehearth:ai_packs" : {
+			"packs" : [
+				"mechanicalmod:ai_pack:core"
 			]
 		}
 	}

@@ -33,7 +33,7 @@ function PowerDrain:initialize(entity, json)
 	
 	stonehearth.power_api:register_power_drain(self._entity)
 	
-	self._on_tick_interval = stonehearth.calendar:set_interval(100,
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 100,
 		function()
 			self:_on_tick()
 		end

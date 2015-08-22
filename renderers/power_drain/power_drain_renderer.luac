@@ -59,7 +59,7 @@ function PowerDrainRenderer:_update()
 	local new_cube = Cube3(Point3(1.25, offset, 0.25), Point3(1.75, height + offset, 0.75))
 	render_region:add_cube(new_cube)
 	
-	self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, color, color)
+	self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, color, color, '')
 end
 
 return PowerDrainRenderer

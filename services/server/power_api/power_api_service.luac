@@ -25,12 +25,12 @@ function PowerAPIService:initialize()
 	self._power_drains = {}
 	self._power_channels = {}
 	
-	self._on_tick_interval = stonehearth.calendar:set_interval(10,
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 10,
 		function()
 			self:_on_tick()
 		end
 	)
-	self._recycle_channels_interval = stonehearth.calendar:set_interval('1h',
+	self._recycle_channels_interval = stonehearth.calendar:set_interval('', '1h',
 		function()
 			self:_recycle_power_channels()
 		end

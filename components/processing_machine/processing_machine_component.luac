@@ -31,12 +31,12 @@ function ProcessingMachineComponent:initialize(entity, json)
 	
 	self._power_lib = PowerLib()
 	
-	self._on_tick_interval = stonehearth.calendar:set_interval(100,
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 100,
 		function()
 			self:_on_tick()
 		end
 	)
-	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval('', 200,
 		function()
 			self:_on_animation_tick()
 		end
@@ -137,6 +137,11 @@ function ProcessingMachineComponent:get_processing_time()
 end
 
 function ProcessingMachineComponent:_fill_inventory()
+	local town = stonehearth.town:get_town(self._entity)
+	if not town then
+		return
+	end
+	
 	local resource_count = 0
 	radiant.entities.for_all_children(self._entity,
 		function(entity)
@@ -149,7 +154,6 @@ function ProcessingMachineComponent:_fill_inventory()
 	
 	-- If we are not full, schedule a task to have more brought in
 	if resource_count <= self:get_inventory_size() and not self._processing_task then
-		local town = stonehearth.town:get_town(self._entity)
 		local args = {}
 		args.material = self:get_material()
 		args.entity = self._entity

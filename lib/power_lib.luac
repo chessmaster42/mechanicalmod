@@ -34,8 +34,10 @@ end
 function PowerLib:is_machine_placed(entity)
 	local entity_forms = entity:get_component('stonehearth:entity_forms')
 	if entity_forms then
-		local current_form = entity_forms:_get_form_in_world()
-		if current_form == entity_forms:get_iconic_entity() or current_form == entity_forms:get_ghost_entity() or entity_forms:is_being_placed() then
+		--TODO - Find out what we now need to get the current entity form
+		--local current_form = entity_forms:_get_form_in_world()
+		--if current_form == entity_forms:get_iconic_entity() or current_form == entity_forms:get_ghost_entity() or entity_forms:is_being_placed() then
+		if entity_forms:is_being_placed() then
 			return false
 		end
 	end

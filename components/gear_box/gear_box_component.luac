@@ -22,12 +22,12 @@ function GearBoxComponent:initialize(entity, json)
 
 	self._power_lib = PowerLib()
 
-	self._on_tick_interval = stonehearth.calendar:set_interval(50,
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 50,
 		function()
 			self:_on_tick()
 		end
 	)
-	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval('', 200,
 		function()
 			self:_on_animation_tick()
 		end

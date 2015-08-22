@@ -40,22 +40,22 @@ function AdvancedProcessingMachineComponent:initialize(entity, json)
 	
 	self:load_recipes()
 	
-	self._on_tick_interval = stonehearth.calendar:set_interval(100,
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 100,
 		function()
 			self:_on_tick()
 		end
 	)
-	self._on_animation_tick_interval = stonehearth.calendar:set_interval(200,
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval('', 200,
 		function()
 			self:_on_animation_tick()
 		end
 	)
-	stonehearth.calendar:set_interval('1h',
+	stonehearth.calendar:set_interval('', '1h',
 		function()
 			self:_on_fuel_tick()
 		end
 	)
-	stonehearth.calendar:set_interval('1m',
+	stonehearth.calendar:set_interval('', '1m',
 		function()
 			self:_on_effect_tick()
 		end
@@ -278,11 +278,15 @@ function AdvancedProcessingMachineComponent:get_random_recipe_ingredient()
 end
 
 function AdvancedProcessingMachineComponent:_fill_inventory()
+	local town = stonehearth.town:get_town(self._entity)
+	if not town then
+		return
+	end
+	
 	-- If we are not full, schedule a task to have more brought in
 	if self:get_inventory_level() < 1.0 and not self._deliver_ingredients_task then
 		local ingredient = self:get_random_recipe_ingredient()
 		if ingredient then
-			local town = stonehearth.town:get_town(self._entity)
 			local args = {}
 			args.entity = self._entity
 			local action = nil
@@ -306,7 +310,6 @@ function AdvancedProcessingMachineComponent:_fill_inventory()
 	
 	-- If we are not full, schedule a task to have more brought in
 	if self:get_fuel_level() < 1.0 and not self._deliver_fuel_task then
-		local town = stonehearth.town:get_town(self._entity)
 		local args = {}
 		args.entity = self._entity
 		-- TODO - Hardcoded fuel material here for now. Need better action to accept full fuel list

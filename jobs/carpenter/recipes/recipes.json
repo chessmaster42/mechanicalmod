@@ -13,7 +13,9 @@
 				"wood_base" : {
 					"recipe" : "file(wood_base_recipe.json)"
 				}
-			},
+			}
+		},
+		"containers" : {
 			"ordinal" : 15, 
 			"name" : "Containers", 
 			"recipes" : {

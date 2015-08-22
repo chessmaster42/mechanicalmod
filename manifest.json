@@ -56,8 +56,8 @@
 		"actions:toggle_clutch" : "file(ai/actions/toggle_clutch.lua)",
 		"actions:deliver_material" : "file(ai/actions/deliver_material.lua)",
 		"actions:deliver_item" : "file(ai/actions/deliver_item.lua)",
-		"actions:deliver_grain" : "file(ai/actions/deliver_grain.lua)",
-		"actions:deliver_fiber" : "file(ai/actions/deliver_fiber.lua)",
+		
+		"ai_pack:core" : "file(ai/packs/core_ai_pack.json)",
 		
 		"effects:smelt_forge" : "file(data/effects/smelt_forge_effect/smelt_forge_effect.json)"
 	},
@@ -108,11 +108,6 @@
 		"/stonehearth/jobs/blacksmith/recipes/recipes.json" : ["file(jobs/blacksmith/recipes/recipes.json)"],
 		"/stonehearth/jobs/carpenter/recipes/recipes.json" : ["file(jobs/carpenter/recipes/recipes.json)"],
 		"/stonehearth/jobs/mason/recipes/recipes.json" : ["file(jobs/mason/recipes/recipes.json)"],
-		
-		"/stonehearth/jobs/farmer/farmer_abilities/farmer_abilities.json" : ["file(jobs/farmer/farmer_abilities/farmer_abilities.json)"],
-		"/stonehearth/jobs/weaver/weaver_abilities/weaver_abilities.json" : ["file(jobs/weaver/weaver_abilities/weaver_abilities.json)"],
-		"/stonehearth/jobs/carpenter/carpenter_abilities/carpenter_abilities.json" : ["file(jobs/carpenter/carpenter_abilities/carpenter_abilities.json)"],
-		"/stonehearth/jobs/blacksmith/blacksmith_abilities/blacksmith_abilities.json" : ["file(jobs/blacksmith/blacksmith_abilities/blacksmith_abilities.json)"],
 		
 		"/stonehearth/mixins/base_human/base_human.json" : ["file(mixins/base_human/base_human.json)"]
 	},
