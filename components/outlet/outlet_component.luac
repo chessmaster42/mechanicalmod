@@ -24,6 +24,9 @@ function OutletComponent:initialize(entity, json)
 		self:_restore()
 	end
 	
+	self._stored_water = 0
+	self._keep_alive_water = 0
+	
 	self._render_info = self._entity:add_component('render_info')
 	
 	self._power_lib = PowerLib()
@@ -87,7 +90,7 @@ function OutletComponent:_on_tick()
 	local facing = math.floor(radiant.entities.get_facing(self._entity) + 0.5)
 	local offset = Point3()
 	offset.x = -2
-	offset.y = -1
+	offset.y = 0
 	offset.z = 0
 	offset = offset:rotated(facing)
 	
@@ -102,7 +105,22 @@ function OutletComponent:_on_tick()
 		stonehearth.hydrology._water_tight_region = terrain_component:get_water_tight_region()
 	end
 	
-	stonehearth.hydrology:add_water(liquid_removed / 1000.0, location, nil)
+	--Accumulate the dumped water because the water component nils out volume changes less than the constants.hydrology.WETTING_VOLUME (0.25)
+	self._stored_water = self._stored_water + liquid_removed / 1000.0
+	if self._stored_water > (0.25 + self._keep_alive_water) then
+		--log:error('DEBUG - Water added is %s', tostring(self._stored_water))
+		
+		--Add the water to the world and reset the counters
+		stonehearth.hydrology:add_water(self._stored_water, location, nil)
+		self._stored_water = 0
+		self._keep_alive_water = 0
+	else
+		--Keeps the waterfall alive
+		stonehearth.hydrology:add_water(0.01, location, nil)
+		
+		--Track how much pseudo-water is being used to keep the waterfall alive
+		self._keep_alive_water = self._keep_alive_water + 0.01
+	end
 end
 
 function OutletComponent:_on_animation_tick()
