@@ -1,0 +1,104 @@
+local PowerLib = require 'lib.power_lib'
+local Point3 = _radiant.csg.Point3
+local AnimationEffect = require 'radiant.modules.effects.animation_effect'
+local log = radiant.log.create_logger('machines')
+
+local PipeComponent = class()
+
+function PipeComponent:__init()
+end
+
+function PipeComponent:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._render_info = self._entity:add_component('render_info')
+	
+	self._power_lib = PowerLib()
+	
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 10,
+		function()
+			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval('', 200,
+		function()
+			self:_on_animation_tick()
+		end
+	)
+end
+
+function PipeComponent:_restore()
+end
+
+function PipeComponent:destroy()
+	self._effect = nil
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
+end
+
+function PipeComponent:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+
+	local liquid_source = self._entity:get_component('mechanicalmod:liquid_source')
+	local liquid_drain = self._entity:get_component('mechanicalmod:liquid_drain')
+	
+	if not liquid_source or not liquid_drain then
+		return
+	end
+	
+	liquid_source:set_is_enabled(true)
+	liquid_drain:set_is_enabled(true)
+	
+	if liquid_drain:get_max_liquid() == liquid_source:get_max_liquid() then
+		local average_level = (liquid_drain:get_liquid_level() + liquid_source:get_liquid_level()) / 2
+		liquid_drain:set_liquid_level(average_level)
+		liquid_source:set_liquid_level(average_level)
+	else	
+		-- Transfer the contents
+		local liquid_to_move = liquid_drain:get_liquid() / 2
+		local liquid_delta = liquid_drain:remove_liquid(liquid_to_move)
+		local liquid_final_delta = liquid_source:add_liquid(liquid_delta)
+		liquid_drain:add_liquid(liquid_delta - liquid_final_delta)
+	end
+
+	-- Sync the speed and pressure between the dummy drain and source
+	liquid_source:set_speed(liquid_drain:get_speed())
+	liquid_source:set_pressure(liquid_drain:get_pressure())
+	
+	if liquid_source:get_liquid_level() < 0.25 then
+		liquid_source:set_pressure(liquid_source:get_pressure() * 0.9)
+	end
+	if liquid_source:get_liquid_level() < 0.05 then
+		-- Zero out the speed and pressure
+		liquid_drain:set_speed(0)
+		liquid_drain:set_pressure(0)
+		liquid_source:set_speed(0)
+		liquid_source:set_pressure(0)
+	end
+end
+	
+function PipeComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	--TODO - Add some animation to pipes later
+end
+
+return PipeComponent

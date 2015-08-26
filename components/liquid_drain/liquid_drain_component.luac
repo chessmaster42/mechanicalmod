@@ -1,0 +1,217 @@
+local PowerLib = require 'lib.power_lib'
+
+local LiquidDrain = class()
+
+function LiquidDrain:__init()
+end
+
+function LiquidDrain:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv.is_enabled = false
+		self._sv.stored_liquid = 0
+		if json.liquid then
+			self._sv.rate = math.max(1, json.liquid.rate or 1)
+			self._sv.max_stored_liquid = math.max(1, json.liquid.max_stored or 100)
+		else
+			self._sv.rate = 1
+			self._sv.max_stored_liquid = 100
+		end
+		self._sv.connectors = json.connectors
+		self._sv.view_mode = 0
+		self._sv.speed = 0
+		self._sv.pressure = 0
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._power_lib = PowerLib()
+	self._power_lib:load_liquid_api()
+	
+	stonehearth.liquid_api:register_drain(self._entity)
+	
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 100,
+		function()
+			self:_on_tick()
+		end
+	)
+end
+
+function LiquidDrain:_restore()
+	if not self._sv.view_mode then
+		self._sv.view_mode = 0
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.speed then
+		self._sv.speed = 0
+		self.__saved_variables:mark_changed()
+	end
+	if not self._sv.pressure then
+		self._sv.pressure = 0
+		self.__saved_variables:mark_changed()
+	end
+end
+
+function LiquidDrain:destroy()
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	
+	stonehearth.liquid_api:unregister_drain(self._entity)
+end
+
+function LiquidDrain:toggle_view_mode()
+	if self._sv.view_mode == 0 then
+		self._sv.view_mode = 1
+		self.__saved_variables:mark_changed()
+	else
+		self._sv.view_mode = 0
+		self.__saved_variables:mark_changed()
+	end
+end
+
+function LiquidDrain:get_connectors()
+	return self._sv.connectors
+end
+
+function LiquidDrain:set_speed(speed)
+	if self._sv.speed == speed then
+		return
+	end
+	
+	self._sv.speed = speed
+	self.__saved_variables:mark_changed()
+end
+
+function LiquidDrain:get_speed()
+	return self._sv.speed
+end
+
+function LiquidDrain:set_pressure(pressure)
+	if self._sv.pressure == pressure then
+		return
+	end
+	
+	self._sv.pressure = pressure
+	self.__saved_variables:mark_changed()
+end
+
+function LiquidDrain:get_pressure()
+	return self._sv.pressure
+end
+
+function LiquidDrain:set_rate(rate)
+	if self._sv.rate == rate then
+		return
+	end
+	
+	self._sv.rate = rate
+	self.__saved_variables:mark_changed()
+end
+
+function LiquidDrain:get_rate()
+	if not self._sv.rate then
+		self._sv.rate = 1
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.rate
+end
+
+function LiquidDrain:get_max_liquid()
+	if not self._sv.max_stored_liquid then
+		self._sv.max_stored_liquid = 100
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.max_stored_liquid
+end
+
+function LiquidDrain:get_liquid()
+	if not self._sv.stored_liquid then
+		self._sv.stored_liquid = 0
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.stored_liquid
+end
+
+function LiquidDrain:add_liquid(liquid_to_add)
+	local new_liquid = math.min(self._sv.max_stored_liquid, self._sv.stored_liquid + liquid_to_add)
+	if self._sv.stored_liquid == new_liquid then
+		return 0
+	end
+	local liquid_delta = new_liquid - self._sv.stored_liquid
+	
+	self._sv.stored_liquid = new_liquid
+	self.__saved_variables:mark_changed()
+	
+	return liquid_delta
+end
+
+function LiquidDrain:remove_liquid(liquid_to_remove)
+	local new_liquid = math.max(0, self._sv.stored_liquid - liquid_to_remove)
+	if self._sv.stored_liquid == new_liquid then
+		return 0
+	end
+	local liquid_delta = self._sv.stored_liquid - new_liquid
+	
+	self._sv.stored_liquid = new_liquid
+	self.__saved_variables:mark_changed()
+	
+	return liquid_delta
+end
+
+function LiquidDrain:get_liquid_level()
+	return (self:get_liquid() / self:get_max_liquid())
+end
+
+function LiquidDrain:set_liquid_level(percentage)
+	if not percentage then
+		percentage = 0
+	end
+	
+	-- Clamp the percentage fraction between 0 and 1
+	percentage = math.min(1, math.max(0, percentage))
+	
+	local stored_liquid = percentage * self._sv.max_stored_liquid
+	if self._sv.stored_liquid == stored_liquid then
+		return
+	end
+	
+	self._sv.stored_liquid = stored_liquid
+	self.__saved_variables:mark_changed()
+end
+
+function LiquidDrain:get_is_enabled()
+	if not self._sv.is_enabled then
+		self._sv.is_enabled = false
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.is_enabled
+end
+
+function LiquidDrain:set_is_enabled(enabled)
+	if self._sv.is_enabled == enabled then
+		return
+	end
+	self._sv.is_enabled = enabled
+	self.__saved_variables:mark_changed()
+end
+
+function LiquidDrain:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		stonehearth.liquid_api:unregister_drain(self._entity)
+		self:set_liquid_level(0)
+		self:set_speed(0)
+		self:set_pressure(0)
+		return
+	end
+
+	if not stonehearth.liquid_api:is_registered_drain(self._entity) then
+		stonehearth.liquid_api:register_drain(self._entity)
+	end
+end
+
+return LiquidDrain

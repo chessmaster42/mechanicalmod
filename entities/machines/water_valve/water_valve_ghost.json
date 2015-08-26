@@ -1,0 +1,29 @@
+{
+	"type": "entity",
+	"components": {
+		"unit_info": {
+			"name": "Wood Valve Pipe",
+			"description": "Enables and disables the flow of liquids",
+			"icon" : "file(water_valve.png)",
+			"portrait": "file(water_valve.png)"
+		},
+		"model_variants": {
+			"default": {
+				"models": [
+					"file(water_valve.qb)"
+				]
+			}
+		},
+		"mob" : {
+			"model_origin" : { "x": 0, "y": 0, "z": 0 },
+			"region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+		},
+		"stonehearth:material" : {
+			"tags" : "wood stone iron furniture crafted machine"
+		}
+	},
+	"entity_data" : {
+		"stonehearth:hide_child_entities_from_pathfinder" : true
+	}
+}
+ 

@@ -1,0 +1,25 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 5,
+	"recipe_name" : "Water Outlet",
+	"description" : "Dumps liquid out from pipes",
+	"portrait"    : "/mechanicalmod/entities/machines/water_outlet/water_outlet.png",
+	"level_requirement" : 2,
+	
+	"ingredients" : [
+		{
+			"material" : "wood resource",
+			"count" : 2
+		},
+		{
+			"material" : "leather resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:water_outlet"
+		}
+	]
+}

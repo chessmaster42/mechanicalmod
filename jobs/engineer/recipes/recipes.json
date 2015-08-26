@@ -2,7 +2,7 @@
 	"craftable_recipes" : {
 		"machine_parts" : {
 			"ordinal" : 1, 
-			"name" : "Machine Parts", 
+			"name" : "Complex Machine Parts", 
 			"recipes" : {
 			}
 		},
@@ -57,6 +57,48 @@
 				},
 				"clutch_shaft" : {
 					"recipe" : "file(clutch_shaft_recipe.json)"
+				}
+			}
+		},
+		"liquid_sources" : {
+			"ordinal" : 5,
+			"name" : "Liquid Sources",
+			"recipes" : {
+				"water_pump" : {
+					"recipe" : "file(liquid/water_pump_recipe.json)"
+				}
+			}
+		},
+		"liquid_drains" : {
+			"ordinal" : 6,
+			"name" : "Liquid Consumers",
+			"recipes" : {
+				"storage_tank" : {
+					"recipe" : "file(liquid/storage_tank_recipe.json)"
+				},
+				"water_outlet" : {
+					"recipe" : "file(liquid/water_outlet_recipe.json)"
+				}
+			}
+		},
+		"liquid_transmission" : {
+			"ordinal" : 7,
+			"name" : "Liquid Transmission",
+			"recipes" : {
+				"pipe_wood_straight_short" : {
+					"recipe" : "file(liquid/pipe_wood_straight_short_recipe.json)"
+				},
+				"pipe_wood_straight_long" : {
+					"recipe" : "file(liquid/pipe_wood_straight_long_recipe.json)"
+				},
+				"pipe_wood_corner" : {
+					"recipe" : "file(liquid/pipe_wood_corner_recipe.json)"
+				},
+				"pipe_wood_junction" : {
+					"recipe" : "file(liquid/pipe_wood_junction_recipe.json)"
+				},
+				"water_valve" : {
+					"recipe" : "file(liquid/water_valve_recipe.json)"
 				}
 			}
 		}

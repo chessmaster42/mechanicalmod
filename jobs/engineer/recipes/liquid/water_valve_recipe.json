@@ -1,0 +1,33 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 10,
+	"recipe_name" : "Water Valve",
+	"description" : "Enables and disables the flow of liquids",
+	"portrait"    : "/mechanicalmod/entities/machines/water_valve/water_valve.png",
+	"level_requirement" : 2,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:parts:wood_shaft",
+			"count" : 1
+		},
+		{
+			"uri" : "mechanicalmod:parts:wood_cog",
+			"count" : 1
+		},
+		{
+			"material" : "wood resource",
+			"count" : 2
+		},
+		{
+			"material" : "leather resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:machines:water_valve"
+		}
+	]
+}

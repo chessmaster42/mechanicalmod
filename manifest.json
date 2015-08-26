@@ -1,7 +1,7 @@
 {
 	"info" : {
 		"name" : "Mechanical Mod",
-		"version" : 8
+		"version" : 9
 	},
 	"aliases" : {
 		"refined:corn_meal" : "file(entities/refined/corn_meal)",
@@ -9,6 +9,12 @@
 		
 		"containers:wood_barrel" : "file(entities/containers/wood_barrel)",
 		"containers:ethanol_barrel" : "file(entities/containers/ethanol_barrel)",
+		"containers:storage_tank" : "file(entities/containers/storage_tank)",
+		
+		"pipe:wood:straight_short" : "file(entities/containers/pipe/wood/straight_short)",
+		"pipe:wood:straight_long" : "file(entities/containers/pipe/wood/straight_long)",
+		"pipe:wood:corner_short" : "file(entities/containers/pipe/wood/corner_short)",
+		"pipe:wood:junction_short" : "file(entities/containers/pipe/wood/junction_short)",
 		
 		"parts:wood_cog" : "file(entities/refined/parts/wood_cog)",
 		"parts:wood_shaft" : "file(entities/refined/parts/wood_shaft)",
@@ -34,6 +40,10 @@
 		"machines:saw_mill" : "file(entities/machines/saw_mill)",
 		"machines:fermenter" : "file(entities/machines/fermenter)",
 		
+		"machines:water_pump" : "file(entities/machines/water_pump)",
+		"machines:water_outlet" : "file(entities/machines/water_outlet)",
+		"machines:water_valve" : "file(entities/machines/water_valve)",
+		
 		"skeletons:water_wheel" : "file(data/rigs/water_wheel/water_wheel.json)",
 		"skeletons:drive_shaft" : "file(data/rigs/drive_shaft/drive_shaft.json)",
 		"skeletons:vertical_drive_shaft" : "file(data/rigs/vertical_drive_shaft/vertical_drive_shaft.json)",
@@ -45,6 +55,7 @@
 		"skeletons:smelt_forge" : "file(data/rigs/smelt_forge/smelt_forge.json)",
 		"skeletons:saw_mill" : "file(data/rigs/saw_mill/saw_mill.json)",
 		"skeletons:fermenter" : "file(data/rigs/fermenter/fermenter.json)",
+		"skeletons:water_pump" : "file(data/rigs/water_pump/water_pump.json)",
 		
 		"engineer:workbench" : "file(jobs/engineer/engineer_workbench)",
 		"engineer:toolbox" : "file(jobs/engineer/engineer_toolbox)",
@@ -89,19 +100,28 @@
 	"components" : {
 		"water_wheel" : "file(components/water_wheel/water_wheel_component.lua)",
 		"wind_sail" : "file(components/wind_sail/wind_sail_component.lua)",
+		"pump" : "file(components/pump/pump_component.lua)",
+		"outlet" : "file(components/outlet/outlet_component.lua)",
 		
 		"processing_machine" : "file(components/processing_machine/processing_machine_component.lua)",
 		"advanced_processing_machine" : "file(components/advanced_processing_machine/advanced_processing_machine_component.lua)",
 		"gear_box" : "file(components/gear_box/gear_box_component.lua)",
 		"clutch" : "file(components/clutch/clutch_component.lua)",
 		"drive_shaft" : "file(components/drive_shaft/drive_shaft_component.lua)",
+		"pipe" : "file(components/pipe/pipe_component.lua)",
+		"valve" : "file(components/valve/valve_component.lua)",
 		
 		"power_source" : "file(components/power_source/power_source_component.lua)",
-		"power_drain" : "file(components/power_drain/power_drain_component.lua)"
+		"power_drain" : "file(components/power_drain/power_drain_component.lua)",
+		"liquid_source" : "file(components/liquid_source/liquid_source_component.lua)",
+		"liquid_drain" : "file(components/liquid_drain/liquid_drain_component.lua)"
 	},
 	"component_renderers" : {
 		"power_source" : "file(renderers/power_source/power_source_renderer.lua)",
 		"power_drain" : "file(renderers/power_drain/power_drain_renderer.lua)",
+		"liquid_source" : "file(renderers/liquid_source/liquid_source_renderer.lua)",
+		"liquid_drain" : "file(renderers/liquid_drain/liquid_drain_renderer.lua)",
+		
 		"advanced_processing_machine" : "file(renderers/advanced_processing_machine/advanced_processing_machine_renderer.lua)"
 	},
 	"mixintos" : {

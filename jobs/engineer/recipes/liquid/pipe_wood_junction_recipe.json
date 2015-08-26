@@ -1,0 +1,25 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 8,
+	"recipe_name" : "4-Way Junction Wood Pipe",
+	"description" : "Moves liquid stuff",
+	"portrait"    : "/mechanicalmod/entities/containers/pipe/wood/junction_short/junction_short.png",
+	"level_requirement" : 2,
+	
+	"ingredients" : [
+		{
+			"material" : "wood resource",
+			"count" : 4
+		},
+		{
+			"material" : "leather resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:pipe:wood:junction_short"
+		}
+	]
+}

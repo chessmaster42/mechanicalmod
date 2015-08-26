@@ -1,0 +1,30 @@
+{
+	"mixins" : "file(water_outlet_ghost.json)",
+	"type": "entity",
+	"components": {
+		"render_info" : {
+		},
+		"stonehearth:entity_forms" : {
+			"ghost_form" : "file(water_outlet_ghost.json)",
+			"iconic_form" : "file(water_outlet_iconic.json)",
+			"placeable_on_ground" : true
+		},
+		"region_collision_shape" : {
+			"region": [
+				{
+					"min" : { "x" : -0.5, "y" : 0, "z" : 0 },
+					"max" : { "x" : 1.5, "y" : 1, "z" : 1 }
+				}
+			]
+		},
+		"stonehearth:commands" : {
+			"commands" : [
+				"mechanicalmod:commands:show_machine_details"
+			]
+		},
+		"mechanicalmod:liquid_drain" : {
+		},
+		"mechanicalmod:outlet" : {
+		}
+	}
+}

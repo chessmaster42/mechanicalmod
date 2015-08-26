@@ -1,0 +1,241 @@
+local PowerLib = require 'lib.power_lib'
+local Point3 = _radiant.csg.Point3
+local Region3 = _radiant.csg.Region3
+local Cube3 = _radiant.csg.Cube3
+local log = radiant.log.create_logger('machines')
+
+local PumpComponent = class()
+
+function PumpComponent:__init()
+end
+
+function PumpComponent:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		if json.liquid then
+			self._sv.rate = math.max(1, json.liquid.rate or 10)
+			self._sv.speed = math.max(1, json.liquid.speed or 1)
+			self._sv.pressure = math.max(1, json.liquid.pressure or 500)
+		else
+			self._sv.rate = 10
+			self._sv.speed = 1
+			self._sv.pressure = 500
+		end
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._render_info = self._entity:add_component('render_info')
+	
+	self._power_lib = PowerLib()
+	
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 10,
+		function()
+			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval('', 200,
+		function()
+			self:_on_animation_tick()
+		end
+	)
+end
+
+function PumpComponent:_restore()
+end
+
+function PumpComponent:destroy()
+	self._effect = nil
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
+end
+
+function PumpComponent:get_rate()
+	if not self._sv.rate then
+		self._sv.rate = 10
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.rate
+end
+
+function PumpComponent:get_speed()
+	if not self._sv.speed then
+		self._sv.speed = 1
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.speed
+end
+
+function PumpComponent:get_pressure()
+	if not self._sv.pressure then
+		self._sv.pressure = 500
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.pressure
+end
+
+function PumpComponent:_get_water_body()
+	local water = nil
+	local location = radiant.entities.get_world_grid_location(self._entity)
+	if not location then
+		return nil
+	end
+	
+	-- TODO - This is a VERY lazy and slow way to find the water body. Come up with something better later
+	for y = (location.y - 6),(location.y - 1) do
+		for x = (location.x - 1),(location.x + 1) do
+			for z = (location.z - 1),(location.z + 1) do
+				if x == 0 and z == 0 then
+				else
+					local new_pos = Point3(x, y, z)
+					if not water then
+						water = stonehearth.hydrology:get_water_body(new_pos)
+					end
+				end
+			end
+		end
+	end
+	
+	return water
+end
+
+function PumpComponent:_get_water_flow_rate(water_body)
+	if not water_body then
+		return 0
+	end
+	
+	local channel_manager = stonehearth.hydrology:get_channel_manager()
+	local channels = channel_manager:get_channels(water_body)
+	
+	local total_flow_rate = 0
+	for _,channel in pairs(channels) do
+		local flow_rate = channel_manager:calculate_channel_flow_rate(channel)
+		total_flow_rate = total_flow_rate + flow_rate
+	end
+	
+	return total_flow_rate
+end
+
+function PumpComponent:_get_water_volume(water_body)
+	if not water_body then
+		return 0
+	end
+	
+	local water_cmp = water_body:get_component('stonehearth:water')
+	if not water_cmp then
+		return 0
+	end	
+	
+	local water_region = water_cmp:get_region():get()
+	
+	local height = water_cmp._sv.height
+	--water_region = stonehearth.subterranean_view:intersect_region_with_visible_volume(water_region)
+	--water_region:optimize_by_merge('_get_water_volume()')
+	local actual_region = Region3()
+	for working_cube in water_region:each_cube() do
+		local actual_cube = Cube3(working_cube)
+		if actual_cube.max.y > height then
+			actual_cube.max.y = height
+			if height - actual_cube.min.y < 0.001 then
+				actual_cube.min.y = height - 0.001
+			end
+		end
+		actual_region:add_cube(actual_cube)
+	end
+	local volume = actual_region:get_area()
+	
+	--Convert block volume to liters
+	volume = volume * 1000
+	
+	return volume
+end
+
+function PumpComponent:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local liquid_source = self._entity:add_component('mechanicalmod:liquid_source')
+	if not liquid_source then
+		return
+	end
+	
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	if not power_drain then
+		return
+	end
+	
+	--Consume power from power_drain
+	power_drain:set_is_enabled(true)
+	local power_level = power_drain:get_power_level()
+	if power_level < 0.05 then
+		power_drain:set_speed(0)
+		power_drain:set_torque(0)
+	end
+	if power_level <= 0 then
+		return
+	end
+	
+	--Simulate power loss from rotary to fluid force conversion
+	power_drain:remove_power(0.25)
+	
+	local water_body = self:_get_water_body()
+	if not water_body then
+		return
+	end
+	
+	--Calculate the amount of water to pull from the water body
+	local full_volume = self:_get_water_volume(water_body)
+	local volume = self:get_rate() * power_level	--x100 liters per second
+	
+	--Produce liquid in the source
+	liquid_source:set_is_enabled(true)
+	local liquid_added = liquid_source:add_liquid(volume)
+	liquid_source:set_speed(self:get_speed() * power_level)		--meters per second
+	liquid_source:set_pressure(self:get_pressure() * power_level)	--kilopascals
+	
+	if not liquid_added or liquid_added <= 0 then
+		return
+	end
+	
+	--Remove liquid from water_body
+	local liquid_not_removed = stonehearth.hydrology:remove_water(liquid_added / 1000.0, nil, water_body) * 1000.0
+	liquid_source:remove_liquid(liquid_not_removed)
+end
+
+function PumpComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local power_drain = self._entity:get_component('mechanicalmod:power_drain')
+	local speed_percent = math.max(0, math.min(100, power_drain:get_speed()))
+	speed_percent = speed_percent - (speed_percent % 25)
+
+	if not self._effect then		
+		if speed_percent > 0 then
+			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
+		else
+			self._effect = radiant.effects.run_effect(self._entity, 'idle')
+		end
+	end
+	
+	self._effect:set_finished_cb(
+		function()
+			self._effect = nil
+			self:_on_animation_tick()
+		end
+	)
+end
+
+return PumpComponent

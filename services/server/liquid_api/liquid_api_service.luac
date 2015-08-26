@@ -1,0 +1,407 @@
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
+local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('liquid')
+
+LiquidAPIService = class()
+
+function LiquidAPIService:__init()
+end
+
+function LiquidAPIService:initialize()
+	if stonehearth.liquid_api then
+		return
+	end
+	
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._sources = {}
+	self._drains = {}
+	self._channels = {}
+	
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 10,
+		function()
+			self:_on_tick()
+		end
+	)
+	self._recycle_channels_interval = stonehearth.calendar:set_interval('', '1h',
+		function()
+			self:_recycle_channels()
+		end
+	)
+	
+	stonehearth.liquid_api = self
+end
+
+function LiquidAPIService:_restore()
+end
+
+function LiquidAPIService:destroy()
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._recycle_channels_interval then
+		self._recycle_channels_interval:destroy()
+		self._recycle_channels_interval = nil
+	end
+end
+
+function LiquidAPIService:get_power_lib()
+	local power_lib = require('lib.power_lib')()
+	
+	return power_lib
+end
+
+function LiquidAPIService:register_source(entity)
+	local id = entity:get_id()
+	if not self._sources[id] then
+		local location = radiant.entities.get_world_grid_location(entity)
+		if location then
+			--log:error('DEBUG - Registered %s @ %s as source', tostring(entity), tostring(location))
+			self._sources[id] = entity
+		end
+	end
+end
+
+function LiquidAPIService:unregister_source(entity)
+	local id = entity:get_id()
+	if self._sources[id] then
+		self._sources[id] = nil
+		
+		for c_id,channel in pairs(self._channels) do
+			if channel.source and channel.source:get_id() == id then
+				self._channels[c_id] = nil
+			end
+		end
+		
+		--log:error('DEBUG - Unregistered %s as source', tostring(entity))
+	end
+end
+
+function LiquidAPIService:is_registered_source(entity)
+	if not entity or not entity:is_valid() then
+		return false
+	end
+	local id = entity:get_id()
+	if self._sources[id] then
+		return true
+	else
+		return false
+	end
+end
+
+function LiquidAPIService:register_drain(entity)
+	local id = entity:get_id()
+	if not self._drains[id] then
+		local location = radiant.entities.get_world_grid_location(entity)
+		if location then
+			--log:error('DEBUG - Registered %s @ %s as drain', tostring(entity), tostring(location))
+			self._drains[id] = entity
+		end
+	end
+end
+
+function LiquidAPIService:unregister_drain(entity)
+	local id = entity:get_id()
+	if self._drains[id] then
+		self._drains[id] = nil
+		
+		for c_id,channel in pairs(self._channels) do
+			if channel.drain and channel.drain:get_id() == id then
+				self._channels[c_id] = nil
+			end
+		end
+		
+		--log:error('DEBUG - Unregistered %s as drain', tostring(entity))
+	end
+end
+
+function LiquidAPIService:is_registered_drain(entity)
+	if not entity or not entity:is_valid() then
+		return false
+	end
+	local id = entity:get_id()
+	if self._drains[id] then
+		return true
+	else
+		return false
+	end
+end
+
+function LiquidAPIService:get_connected_drains(source)
+	local id = source:get_id()
+	
+	local drains = {}
+	
+	for _,channel in pairs(self._channels) do
+		if channel.source:get_id() == id then
+			table.insert(drains, channel.drain)
+		end
+	end
+	
+	return drains
+end
+
+function LiquidAPIService:get_connected_sources(drain)
+	local id = drain:get_id()
+	
+	local sources = {}
+	
+	for _,channel in pairs(self._channels) do
+		if channel.drain:get_id() == id then
+			table.insert(sources, channel.source)
+		end
+	end
+	
+	return sources
+end
+
+function LiquidAPIService:get_channel(channel_id)
+	if not channel_id or not self._channels[channel_id] then
+		return nil
+	end
+	
+	return self._channels[channel_id]
+end
+
+function LiquidAPIService:activate_channel(channel_id)
+	if not channel_id or not self._channels[channel_id] then
+		return
+	end
+	
+	local channel = self._channels[channel_id]
+	channel.active = true
+end
+
+function LiquidAPIService:deactivate_channel(channel_id)
+	if not channel_id or not self._channels[channel_id] then
+		return
+	end
+	
+	local channel = self._channels[channel_id]
+	if not channel.active then
+		return
+	end
+	
+	channel.active = false
+end
+
+function LiquidAPIService:add_channel(source, drain)
+	if not source or not drain then
+		return nil
+	end
+	
+	local channel_id = source:get_id() .. '_' .. drain:get_id()
+	if self._channels[channel_id] then
+		return
+	end
+	
+	local entry = {}
+	entry.source = source
+	entry.drain = drain
+	entry.active = true
+	
+	self._channels[channel_id] = entry
+	
+	return channel_id
+end
+
+function LiquidAPIService:remove_channel(channel_id)
+	if not channel_id or not self._channels[channel_id] then
+		return
+	end
+	
+	self._channels[channel_id] = nil
+end
+
+function LiquidAPIService:_get_connection_region(entity)
+	local rcs = entity:get_component('region_collision_shape')
+	local region = rcs:get_region():get()
+	local location = radiant.entities.get_world_grid_location(entity)
+	if not location then
+		return nil
+	end
+	local facing = math.floor(radiant.entities.get_facing(entity) + 0.5)
+	region = region:inflated(Point3(1, 1, 0.5))
+	region = region:translated(Point3(-0.5,0,-0.5))
+	region = region:rotated(facing)
+	region = region:translated(Point3(0.5,0,0.5))
+	region = region:translated(location)
+	
+	return region
+end
+
+function LiquidAPIService:_check_valid_connectors(source, drain)
+	local source_cmp = source:get_component('mechanicalmod:liquid_source')
+	local drain_cmp = drain:get_component('mechanicalmod:liquid_drain')
+	
+	local source_facing = math.floor(radiant.entities.get_facing(source) + 0.5)
+	local drain_facing = math.floor(radiant.entities.get_facing(drain) + 0.5)
+	local facing_delta = source_facing - drain_facing
+	local source_location = radiant.entities.get_world_grid_location(source)
+	local drain_location = radiant.entities.get_world_grid_location(drain)
+	local location_delta = source_location - drain_location
+	
+	local delta_x = 0
+	
+	if source_facing == 0 then
+		delta_x = location_delta.x
+	end
+	if source_facing == 90 then
+		delta_x = -location_delta.z
+	end
+	if source_facing == 180 then
+		delta_x = -location_delta.x
+	end
+	if source_facing == 270 then
+		delta_x = location_delta.z
+	end
+	
+	if facing_delta == 180 then
+		delta_x = -delta_x
+	end
+	
+	local source_connectors = source_cmp:get_connectors()
+	local drain_connectors = drain_cmp:get_connectors()
+	
+	-- If neither the source nor the drain have connectors, just return true
+	if not source_connectors and not drain_connectors then
+		return true
+	end
+	
+	--log:error('DEBUG - source=%s;drain=%s;source_facing=%s;facing_delta=%s;delta_x=%s', tostring(source), tostring(drain), tostring(source_facing), tostring(facing_delta), tostring(delta_x))
+	
+	local source_result = false
+	local drain_result = false
+	
+	if source_connectors then
+		if delta_x > 0 and source_connectors.front then
+			source_result = true
+		end
+		if delta_x < 0 and source_connectors.back then
+			source_result = true
+		end
+	else
+		-- Default this to true if there are no source connectors
+		source_result = true
+	end
+	if drain_connectors then
+		if delta_x > 0 and drain_connectors.back then
+			drain_result = true
+		end
+		if delta_x < 0 and drain_connectors.front then
+			drain_result = true
+		end
+	else
+		-- Default this to true if there are no drain connectors
+		drain_result = true
+	end
+	
+	local result = (source_result and drain_result)
+	
+	--log:error('DEBUG - source_result=%s;drain_result=%s;result=%s', tostring(source_result), tostring(drain_result), tostring(result))
+	
+	return result
+end
+
+function LiquidAPIService:_check_for_connected_sources(drain)
+	local drain_region = self:_get_connection_region(drain)
+	if not drain_region then
+		self:unregister_drain(drain)
+		return
+	end
+	
+	for _,source in pairs(self._sources) do
+		if source ~= drain then
+			local source_region = self:_get_connection_region(source)
+			if source_region then
+				local result = source_region:intersect_region(drain_region)
+				
+				if result and result:get_area() > 0 then
+					self:add_channel(source, drain)
+					
+					--log:error('DEBUG - Established channel from source %s to drain %s', tostring(source), tostring(drain))
+				end
+			else
+				self:unregister_source(source)
+			end
+		end
+	end
+end
+
+function LiquidAPIService:_update_channels()
+	for d_id,drain in pairs(self._drains) do
+		self:_check_for_connected_sources(drain)
+	end
+	
+	-- Get the list of functional and active channels
+	local active_channels = {}
+	for c_id,channel in pairs(self._channels) do
+		if not channel or not channel.source or not channel.drain or channel.active ~= true then
+			-- Do nothing
+		else
+			if not self:is_registered_source(channel.source) or not self:is_registered_drain(channel.drain) then
+				-- Do nothing
+			else
+				local source_cmp = channel.source:get_component('mechanicalmod:liquid_source')
+				local drain_cmp = channel.drain:get_component('mechanicalmod:liquid_drain')
+				
+				if not source_cmp:get_is_enabled() or not drain_cmp:get_is_enabled() then
+					-- Do nothing
+				else
+					if self:_check_valid_connectors(channel.source, channel.drain) then
+						table.insert(active_channels, channel)
+					end
+				end
+			end
+		end
+	end
+	
+	-- Process the active channels
+	for _,channel in pairs(active_channels) do
+		local source_cmp = channel.source:get_component('mechanicalmod:liquid_source')
+		local drain_cmp = channel.drain:get_component('mechanicalmod:liquid_drain')
+		
+		-- Transfer the contents
+		if source_cmp:get_liquid_level() > 0 then
+			if drain_cmp:get_max_liquid() == source_cmp:get_max_liquid() then
+				local average_level = (drain_cmp:get_liquid_level() + source_cmp:get_liquid_level()) / 2
+				drain_cmp:set_liquid_level(average_level)
+				source_cmp:set_liquid_level(average_level)
+			else	
+				local liquid_to_move = source_cmp:get_liquid() / 1
+				local liquid_delta = source_cmp:remove_liquid(liquid_to_move)
+				local liquid_final_delta = drain_cmp:add_liquid(liquid_delta)
+				source_cmp:add_liquid(liquid_delta - liquid_final_delta)
+			end
+		end
+		
+		-- Sync the speed
+		if source_cmp:get_speed() > 0 then
+			drain_cmp:set_speed(source_cmp:get_speed())
+		end
+		
+		-- Sync the pressure
+		drain_cmp:set_pressure(source_cmp:get_pressure())
+	end
+end
+
+function LiquidAPIService:_recycle_channels()
+	-- Reset all of the channels
+	self._channels = {}
+	
+	--log:error('DEBUG - Cleared channel cache')
+end
+
+function LiquidAPIService:_on_tick()
+	self:_update_channels()
+end
+
+return LiquidAPIService

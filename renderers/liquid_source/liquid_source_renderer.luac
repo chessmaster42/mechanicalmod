@@ -2,11 +2,11 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 local Color4 = _radiant.csg.Color4
-local log = radiant.log.create_logger('power_source')
+local log = radiant.log.create_logger('liquid_source')
 
-local PowerSourceRenderer = class()
+local LiquidSourceRenderer = class()
 
-function PowerSourceRenderer:initialize(render_entity, datastore)
+function LiquidSourceRenderer:initialize(render_entity, datastore)
 	self._datastore = datastore
 	self._render_entity = render_entity
 	self._entity = self._render_entity:get_entity()
@@ -19,7 +19,7 @@ function PowerSourceRenderer:initialize(render_entity, datastore)
 	):push_object_state()
 end
 
-function PowerSourceRenderer:destroy()
+function LiquidSourceRenderer:destroy()
 	if self._datastore_trace then
 		self._datastore_trace:destroy()
 		self._datastore_trace = nil
@@ -27,14 +27,14 @@ function PowerSourceRenderer:destroy()
 	self:_destroy_outline_node()
 end
 
-function PowerSourceRenderer:_destroy_outline_node()
+function LiquidSourceRenderer:_destroy_outline_node()
 	if self._outline_node then
 		self._outline_node:destroy()
 		self._outline_node = nil
 	end
 end
 
-function PowerSourceRenderer:_update()
+function LiquidSourceRenderer:_update()
 	self:_destroy_outline_node()
 	
 	local data = self._datastore:get_data()
@@ -51,10 +51,10 @@ function PowerSourceRenderer:_update()
 		offset = offset + bounds.max.y - bounds.min.y
 	end
 	
-	local percentage = data.stored_power / math.max(1, data.max_stored_power)
+	local percentage = data.stored_liquid / math.max(1, data.max_stored_liquid)
 	
 	local height = percentage * 3 + 0.1
-	local color = Color4(255 * (1.0 - percentage), 255 * percentage, 0, 64)
+	local color = Color4(0, 255 * (1.0 - percentage), 127 * percentage + 128, 64)
 	local render_region = Region3()
 	local new_cube = Cube3(Point3(0.25, offset, 0.25), Point3(0.75, height + offset, 0.75))
 	render_region:add_cube(new_cube)
@@ -62,4 +62,4 @@ function PowerSourceRenderer:_update()
 	self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, color, color, '')
 end
 
-return PowerSourceRenderer
+return LiquidSourceRenderer

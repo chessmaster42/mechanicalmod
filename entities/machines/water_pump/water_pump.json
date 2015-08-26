@@ -1,0 +1,46 @@
+{
+	"mixins" : "file(water_pump_ghost.json)",
+	"type": "entity",
+	"components": {
+		"render_info" : {
+			"animation_table" : "mechanicalmod:skeletons:water_pump"
+		},
+		"stonehearth:entity_forms" : {
+			"ghost_form" : "file(water_pump_ghost.json)",
+			"iconic_form" : "file(water_pump_iconic.json)",
+			"placeable_on_ground" : true
+		},
+		"region_collision_shape" : {
+			"region": [
+				{
+					"min" : { "x" : -1, "y" : 0, "z" : -1 },
+					"max" : { "x" : 2, "y" : 2, "z" : 2 }
+				}
+			]
+		},
+		"stonehearth:commands" : {
+			"commands" : [
+				"mechanicalmod:commands:show_machine_details"
+			]
+		},
+		"mechanicalmod:pump" : {
+			"liquid" : {
+				"rate" : 100.0,
+				"speed" : 10.0,
+				"pressure" : 500.0
+			}
+		},
+		"mechanicalmod:liquid_source" : {
+			"liquid" : {
+				"rate" : 1.0,
+				"max_stored" : 100
+			}
+		},
+		"mechanicalmod:power_drain" : {
+			"power" : {
+				"rate" : 1.0,
+				"max_stored" : 20
+			}
+		}
+	}
+}

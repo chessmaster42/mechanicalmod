@@ -17,6 +17,16 @@ function MachineCallHandler:toggle_power_level_view(session, response, entity)
 		power_drain:toggle_view_mode()
 	end
 	
+	local liquid_source = entity:get_component('mechanicalmod:liquid_source')
+	if liquid_source then
+		liquid_source:toggle_view_mode()
+	end
+	
+	local liquid_drain = entity:get_component('mechanicalmod:liquid_drain')
+	if liquid_drain then
+		liquid_drain:toggle_view_mode()
+	end
+	
 	return true
 end
 
@@ -66,18 +76,38 @@ function MachineCallHandler:toggle_clutch(session, response, entity)
 	end
 
 	local clutch_cmp = entity:get_component('mechanicalmod:clutch')
-	
-	local town = stonehearth.town:get_town(entity)
-	local toggle_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:toggle_clutch'):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
-	toggle_task:notify_completed(
-		function()
-			if clutch_cmp:get_state() == 0 then
-				clutch_cmp:set_state(1)
-			else
-				clutch_cmp:set_state(0)
+	if clutch_cmp then
+		local town = stonehearth.town:get_town(entity)
+		local args = {}
+		args.entity = entity
+		local toggle_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:toggle_clutch', args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
+		toggle_task:notify_completed(
+			function()
+				if clutch_cmp:get_state() == 0 then
+					clutch_cmp:set_state(1)
+				else
+					clutch_cmp:set_state(0)
+				end
 			end
-		end
-	)
+		)
+	end
+	
+	local valve_cmp = entity:get_component('mechanicalmod:valve')
+	if valve_cmp then
+		local town = stonehearth.town:get_town(entity)
+		local args = {}
+		args.entity = entity
+		local toggle_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:toggle_clutch', args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
+		toggle_task:notify_completed(
+			function()
+				if valve_cmp:get_state() == 0 then
+					valve_cmp:set_state(1)
+				else
+					valve_cmp:set_state(0)
+				end
+			end
+		)
+	end
 	
 	return true
 end

@@ -53,7 +53,7 @@ function PowerDrainRenderer:_update()
 	
 	local percentage = data.stored_power / math.max(1, data.max_stored_power)
 	
-	local height = percentage * 3
+	local height = percentage * 3 + 0.1
 	local color = Color4(255 * (1.0 - percentage), 0, 255 * percentage, 64)
 	local render_region = Region3()
 	local new_cube = Cube3(Point3(1.25, offset, 0.25), Point3(1.75, height + offset, 0.75))

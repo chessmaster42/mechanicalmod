@@ -1,0 +1,133 @@
+local PowerLib = require 'lib.power_lib'
+local Point3 = _radiant.csg.Point3
+local Region3 = _radiant.csg.Region3
+local Cube3 = _radiant.csg.Cube3
+local log = radiant.log.create_logger('machines')
+
+local OutletComponent = class()
+
+function OutletComponent:__init()
+end
+
+function OutletComponent:initialize(entity, json)
+	self._entity = entity
+	self._sv = self.__saved_variables:get_data()
+	if not self._sv._initialized then
+		if json.liquid then
+			self._sv.rate = math.max(1, json.liquid.rate or 100)
+		else
+			self._sv.rate = 100
+		end
+		self._sv._initialized = true
+		self.__saved_variables:mark_changed()
+	else
+		self:_restore()
+	end
+	
+	self._render_info = self._entity:add_component('render_info')
+	
+	self._power_lib = PowerLib()
+	
+	self._on_tick_interval = stonehearth.calendar:set_interval('', 10,
+		function()
+			self:_on_tick()
+		end
+	)
+	self._on_animation_tick_interval = stonehearth.calendar:set_interval('', 200,
+		function()
+			--self:_on_animation_tick()
+		end
+	)
+end
+
+function OutletComponent:_restore()
+end
+
+function OutletComponent:destroy()
+	self._effect = nil
+	
+	if self._on_tick_interval then
+		self._on_tick_interval:destroy()
+		self._on_tick_interval = nil
+	end
+	if self._on_animation_tick_interval then
+		self._on_animation_tick_interval:destroy()
+		self._on_animation_tick_interval = nil
+	end
+end
+
+function OutletComponent:get_rate()
+	if not self._sv.rate then
+		self._sv.rate = 100
+		self.__saved_variables:mark_changed()
+	end
+	return self._sv.rate
+end
+
+function OutletComponent:_on_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local liquid_drain = self._entity:add_component('mechanicalmod:liquid_drain')
+	if not liquid_drain then
+		return
+	end
+	
+	liquid_drain:set_is_enabled(true)
+	if liquid_drain:get_liquid() <= 0 then
+		return
+	end
+	
+	local location = radiant.entities.get_world_grid_location(self._entity)
+	if not location then
+		return
+	end
+	
+	local facing = math.floor(radiant.entities.get_facing(self._entity) + 0.5)
+	local offset = Point3()
+	offset.x = -2
+	offset.y = -1
+	offset.z = 0
+	offset = offset:rotated(facing)
+	
+	location = location + offset
+	
+	local liquid_removed = liquid_drain:remove_liquid(self:get_rate() / 1)
+	
+	--log:error('DEBUG - Liquid removed is %s', tostring(liquid_removed))
+	
+	if not stonehearth.hydrology:get_water_tight_region() then
+		local terrain_component = radiant.terrain.get_terrain_component()
+		stonehearth.hydrology._water_tight_region = terrain_component:get_water_tight_region()
+	end
+	
+	stonehearth.hydrology:add_water(liquid_removed / 1000.0, location, nil)
+end
+
+function OutletComponent:_on_animation_tick()
+	if not self._power_lib:is_machine_placed(self._entity) then
+		return
+	end
+	
+	local liquid_drain = self._entity:get_component('mechanicalmod:liquid_drain')
+	local speed_percent = math.max(0, math.min(1.0, liquid_drain:get_speed()))
+	speed_percent = speed_percent - (speed_percent % 25)
+
+	if not self._effect then		
+		if speed_percent > 0 then
+			self._effect = radiant.effects.run_effect(self._entity, 'work_' .. tostring(speed_percent))
+		else
+			self._effect = radiant.effects.run_effect(self._entity, 'idle')
+		end
+	end
+	
+	self._effect:set_finished_cb(
+		function()
+			self._effect = nil
+			self:_on_animation_tick()
+		end
+	)
+end
+
+return OutletComponent

@@ -1,0 +1,29 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 20,
+	"recipe_name" : "Storage Tank",
+	"description" : "Stores any type of liquid",
+	"portrait"    : "/mechanicalmod/entities/containers/storage_tank/storage_tank.png",
+	"level_requirement" : 2,
+	
+	"ingredients" : [
+		{
+			"uri" : "mechanicalmod:pipe:wood:straight_short",
+			"count" : 4
+		},
+		{
+			"uri" : "mechanicalmod:parts:iron_base",
+			"count" : 1
+		},
+		{
+			"uri" : "stonehearth:refined:copper_ingot",
+			"count" : 4
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:containers:storage_tank"
+		}
+	]
+}

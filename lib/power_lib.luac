@@ -1,4 +1,5 @@
 local PowerAPIService = require 'services.server.power_api.power_api_service'
+local LiquidAPIService = require 'services.server.liquid_api.liquid_api_service'
 local log = radiant.log.create_logger('power')
 
 local PowerLib = class()
@@ -13,22 +14,30 @@ function PowerLib:destroy()
 end
 
 function PowerLib:load_power_api()
-	if stonehearth.power_api then
+	self:load_api_service('power_api')
+end
+
+function PowerLib:load_liquid_api()
+	self:load_api_service('liquid_api')
+end
+
+function PowerLib:load_api_service(service_name)
+	if stonehearth[service_name] then
 		return
 	end
 	
-	local path = string.format('services.server.%s.%s_service','power_api','power_api')
+	local path = string.format('services.server.%s.%s_service',service_name,service_name)
 	local service = require(path)()
-	local saved_variables = stonehearth._sv['power_api']
+	local saved_variables = stonehearth._sv[service_name]
 	if not saved_variables then
 		saved_variables = radiant.create_datastore()
-		stonehearth._sv['power_api'] = saved_variables
+		stonehearth._sv[service_name] = saved_variables
 	end
 	service.__saved_variables = saved_variables
 	service._sv = saved_variables:get_data()
 	saved_variables:set_controller(service)
 	service:initialize()
-	stonehearth['power_api'] = service
+	stonehearth[service_name] = service
 end
 
 function PowerLib:is_machine_placed(entity)

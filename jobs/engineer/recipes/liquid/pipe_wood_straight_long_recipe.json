@@ -1,0 +1,25 @@
+{
+	"type" : "recipe",
+	
+	"work_units"  : 8,
+	"recipe_name" : "Straight Long Wood Pipe",
+	"description" : "Moves liquid stuff",
+	"portrait"    : "/mechanicalmod/entities/containers/pipe/wood/straight_long/straight_long.png",
+	"level_requirement" : 2,
+	
+	"ingredients" : [
+		{
+			"material" : "wood resource",
+			"count" : 4
+		},
+		{
+			"material" : "leather resource",
+			"count" : 1
+		}
+	],
+	"produces": [
+		{
+			"item" : "mechanicalmod:pipe:wood:straight_long"
+		}
+	]
+}
