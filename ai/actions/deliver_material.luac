@@ -6,6 +6,7 @@ local DeliverMaterialAction = class()
 DeliverMaterialAction.name = 'deliver material'
 DeliverMaterialAction.does = 'mechanicalmod:deliver_material'
 DeliverMaterialAction.args = {material='string',entity=Entity,}
+DeliverMaterialAction.status_text = 'taking materials to machine...'
 DeliverMaterialAction.version = 2
 DeliverMaterialAction.priority = 1
 

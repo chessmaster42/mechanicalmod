@@ -1,13 +1,4 @@
 {
-	"components" : {
-		"stonehearth:equipment_piece" : {
-			"injected_ai" : {
-				"ai_packs" : [
-					"mechanicalmod:ai_pack:core"
-				]
-			}
-		}
-	},
 	"entity_data" : {
 		"stonehearth:ai_packs" : {
 			"packs" : [

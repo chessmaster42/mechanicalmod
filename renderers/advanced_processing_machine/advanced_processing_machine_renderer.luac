@@ -67,8 +67,8 @@ function AdvancedProcessingMachineRenderer:_update()
 	local inventory_height = inventory_level * 3
 	local fuel_height = fuel_level * 3
 	
-	local inventory_cube = Cube3(Point3(-0.75, offset, 0.25), Point3(-1.25, inventory_height + offset, 0.75))
-	local fuel_cube = Cube3(Point3(-0.25, offset, 0.25), Point3(-0.75, fuel_height + offset, 0.75))
+	local inventory_cube = Cube3(Point3(-1.25, offset, 0.25), Point3(-0.75, inventory_height + offset, 0.75))
+	local fuel_cube = Cube3(Point3(-0.75, offset, 0.25), Point3(-0.25, fuel_height + offset, 0.75))
 	
 	render_region:add_cube(inventory_cube)
 	render_region:add_cube(fuel_cube)

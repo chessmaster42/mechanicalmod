@@ -1,6 +1,6 @@
 local PowerLib = require 'lib.power_lib'
 local Point3 = _radiant.csg.Point3
-local rng = _radiant.csg.get_default_rng()
+local rng = _radiant.math.get_default_rng()
 local log = radiant.log.create_logger('machines')
 
 local AdvancedProcessingMachineComponent = class()
@@ -285,6 +285,8 @@ function AdvancedProcessingMachineComponent:_fill_inventory()
 	
 	-- If we are not full, schedule a task to have more brought in
 	if self:get_inventory_level() < 1.0 and not self._deliver_ingredients_task then
+		--log:error('DEBUG - Advanced Processing Machine - Scheduling ingredients delivery ...')
+	
 		local ingredient = self:get_random_recipe_ingredient()
 		if ingredient then
 			local args = {}
@@ -298,23 +300,31 @@ function AdvancedProcessingMachineComponent:_fill_inventory()
 				args.uri = ingredient.uri
 			end
 			if action then
+				--log:error('DEBUG - Advanced Processing Machine - Creating ingredient delivery task ...')
+				
 				self._deliver_ingredients_task = town:create_task_for_group('stonehearth:task_group:restock', action, args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
 				self._deliver_ingredients_task:notify_completed(
 					function()
 						self._deliver_ingredients_task = nil
 					end
 				)
+			else
+				--log:error('DEBUG - Advanced Processing Machine - No action found. We should not be here')
 			end
+		else
+			--log:error('DEBUG - Advanced Processing Machine - No ingredients found. We should not be here')
 		end
 	end
 	
 	-- If we are not full, schedule a task to have more brought in
 	if self:get_fuel_level() < 1.0 and not self._deliver_fuel_task then
+		--log:error('DEBUG - Advanced Processing Machine - Creating fuel delivery task ...')
+		
 		local args = {}
 		args.entity = self._entity
-		-- TODO - Hardcoded fuel material here for now. Need better action to accept full fuel list
-		args.material = 'coal ore resource'
-		self._deliver_fuel_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:deliver_material', args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
+		-- TODO - Hardcoded fuel item here for now. Need better action to accept full fuel list
+		args.uri = 'stonehearth:resources:coal:lump_of_coal'
+		self._deliver_fuel_task = town:create_task_for_group('stonehearth:task_group:restock', 'mechanicalmod:deliver_item', args):set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM):once():start()
 		self._deliver_fuel_task:notify_completed(
 			function()
 				self._deliver_fuel_task = nil
@@ -376,7 +386,7 @@ function AdvancedProcessingMachineComponent:_process_resources()
 	-- Set the mutex
 	self._is_processing = true
 	
-	self._processing_delay = stonehearth.calendar:set_timer(self:get_processing_time() * 200,
+	self._processing_delay = stonehearth.calendar:set_timer('mechanicalmod resource processing delay', self:get_processing_time() * 200,
 		function()
 			-- Consume all of the recipe ingredients
 			for _,resource in pairs(resources) do

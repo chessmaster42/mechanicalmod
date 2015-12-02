@@ -154,6 +154,8 @@ function ProcessingMachineComponent:_fill_inventory()
 	
 	-- If we are not full, schedule a task to have more brought in
 	if resource_count <= self:get_inventory_size() and not self._processing_task then
+		--log:error('DEBUG - Processing Machine - Scheduling ingredients delivery of %s ...', tostring(self:get_material()))
+		
 		local args = {}
 		args.material = self:get_material()
 		args.entity = self._entity
@@ -187,7 +189,7 @@ function ProcessingMachineComponent:_process_resources()
 		radiant.entities.remove_child(self._entity, first_resource)
 		radiant.entities.destroy_entity(first_resource)
 		
-		self._processing_delay = stonehearth.calendar:set_interval(self:get_processing_time() * 200,
+		self._processing_delay = stonehearth.calendar:set_timer('mechanicalmod resource processing delay', self:get_processing_time() * 200,
 			function()
 				local origin = radiant.entities.get_world_grid_location(self._entity)
 				if not origin then

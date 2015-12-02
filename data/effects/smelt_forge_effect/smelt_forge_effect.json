@@ -6,7 +6,7 @@
 			"cubemitter": "/mechanicalmod/data/horde/particles/machines/smelt_forge.cubemitter.json",
 			"loop": true,
 			"transforms": {
-				"x":4,
+				"x":0,
 				"y":0,
 				"z":0,
 				"rx":90,
@@ -23,7 +23,7 @@
 			"volume": 70,
 			"track" : "stonehearth:sounds:firepit_loop_sound",
 			"transforms": {
-				"x":4,
+				"x":0,
 				"y":0,
 				"z":0
 			}
@@ -32,7 +32,7 @@
 			"type": "light",
 			"light": "/mechanicalmod/data/horde/animatedlights/fire/fire.animatedlight.json",
 			"transforms": {
-				"x":4,
+				"x":0,
 				"y":1,
 				"z":0
 			},

@@ -6,6 +6,7 @@ local DeliverItemAction = class()
 DeliverItemAction.name = 'deliver item'
 DeliverItemAction.does = 'mechanicalmod:deliver_item'
 DeliverItemAction.args = {uri='string',entity=Entity,}
+DeliverItemAction.status_text = 'taking items to machine...'
 DeliverItemAction.version = 2
 DeliverItemAction.priority = 1
 

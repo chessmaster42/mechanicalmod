@@ -14,7 +14,15 @@
 			"region": [
 				{
 					"min" : { "x" : -2, "y" : 0, "z" : 0 },
-					"max" : { "x" : -1, "y" : 1, "z" : 1 }
+					"max" : { "x" : -1, "y" : 2, "z" : 1 }
+				},
+				{
+					"min" : { "x" : -1, "y" : 0, "z" : -1 },
+					"max" : { "x" : 2, "y" : 7, "z" : 2 }
+				},
+				{
+					"min" : { "x" : 0, "y" : 0, "z" : -3 },
+					"max" : { "x" : 1, "y" : 2, "z" : -1 }
 				}
 			]
 		},
@@ -29,6 +37,10 @@
 				{
 					"uri" : "stonehearth:resources:coal:lump_of_coal",
 					"duration" : 10
+				},
+				{
+					"material" : "wood resource",
+					"duration" : 2
 				}
 			],
 			"inventory_size" : {

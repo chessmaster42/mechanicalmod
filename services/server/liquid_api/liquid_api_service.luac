@@ -229,7 +229,7 @@ function LiquidAPIService:_get_connection_region(entity)
 		return nil
 	end
 	local facing = math.floor(radiant.entities.get_facing(entity) + 0.5)
-	region = region:inflated(Point3(1, 1, 0.5))
+	region = region:inflated(Point3(0.25, 0, 0))
 	region = region:translated(Point3(-0.5,0,-0.5))
 	region = region:rotated(facing)
 	region = region:translated(Point3(0.5,0,0.5))
